@@ -1,0 +1,18 @@
+.ant-select-selector {
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    background-color: #252547!important;
+    border-color: rgb(19, 19, 43) !important;
+    border-radius: 5px !important;
+    color: #fff !important;
+}
+
+.ant-select-selection-search {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.ant-select-selection-search-input{
+    color: #fff !important;
+}
