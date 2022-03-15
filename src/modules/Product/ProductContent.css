@@ -2,7 +2,7 @@
     height: 40px !important;
     display: flex !important;
     align-items: center !important;
-    background-color: #252547!important;
+    background-color: #252547 !important;
     border-color: rgb(19, 19, 43) !important;
     border-radius: 5px !important;
     color: #fff !important;
@@ -13,6 +13,29 @@
     align-items: center !important;
 }
 
-.ant-select-selection-search-input{
+.ant-select-selection-search-input {
     color: #fff !important;
+}
+
+.ant-select-selection-item-content {
+    color: #333 !important;
+}
+
+.bg-main {
+    background-color: #252547 !important;
+    border-color: rgb(19, 19, 43) !important;
+    border-radius: 5px !important;
+    padding: 8px !important;
+    color: #fff !important;
+}
+
+.ant-pagination-item-active {
+    font-weight: 500;
+    background: #b18aff!important;
+    border: none !important;
+    color: #fff !important;
+}
+
+.tox-tinymce{
+    margin-left: 16px !important;
 }

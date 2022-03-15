@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../configs/routes'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Checkbox,
   DatePicker,
+  Dropdown,
   Form,
-  Input,
+  Menu,
   Select,
   Switch,
 } from 'antd';
@@ -15,6 +16,9 @@ import ImgCrop from 'antd-img-crop';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import TextArea from 'antd/lib/input/TextArea';
+import { Spinner } from 'react-bootstrap';
+import { Editor } from '@tinymce/tinymce-react';
+import { useSelector } from 'react-redux';
 
 const formItemLayout = {
   labelCol: {
@@ -28,6 +32,34 @@ const formItemLayout = {
 const { Option } = Select;
 
 export default function AddProductContent(props: any) {
+
+  let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
+
+    const renderWidth = ()=>{
+        if(collapsed===true) {
+          return '81%'
+        }
+        if(collapsed===false) {
+          return '92%'
+        }
+      }
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="0">
+        <Checkbox onChange={(event: any) => {
+          if (event.target.checked === true) {
+            setGeneral('General');
+          }
+          else if (event.target.checked === false) {
+            setGeneral('');
+          }
+        }}>General</Checkbox>
+      </Menu.Item>
+    </Menu>
+  );
+
+  const editorRef = useRef(null as any);
 
   const config = {
     headers: { Authorization: Cookies.get('token') as string },
@@ -50,6 +82,7 @@ export default function AddProductContent(props: any) {
   let [countryList, setCountryList] = useState([]);
 
   const onChange = (result: any) => {
+    console.log(result.fileList);
     setFileList(result.fileList);
   };
 
@@ -68,6 +101,7 @@ export default function AddProductContent(props: any) {
     imgWindow.document.write(image.outerHTML);
   };
 
+  let [loading, setLoading] = useState(false);
 
   let [stock, setStock] = useState('');
 
@@ -77,33 +111,41 @@ export default function AddProductContent(props: any) {
 
   let [continentalUS, setContinentalUS] = useState('');
 
-  let [general,setGeneral] = useState('');
+  let [general, setGeneral] = useState('');
 
   const getBrandList = () => {
+    setLoading(true);
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/brands/list', config);
     promise.then((results) => {
       setBrandList(results.data.data);
+      setLoading(false);
     })
   }
 
   const getVendorList = () => {
+    setLoading(true);
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/vendors/list', config);
     promise.then((results) => {
       setVendorList(results.data.data);
+      setLoading(false);
     })
   }
 
   const getCategoryList = () => {
+    setLoading(true);
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list');
     promise.then((results) => {
       setCategoryList(results.data.data);
+      setLoading(false);
     })
   }
 
   const getCountryList = () => {
+    setLoading(true);
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/commons/country', config);
     promise.then((result) => {
       setCountryList(result.data.data);
+      setLoading(false);
     })
   }
 
@@ -120,7 +162,14 @@ export default function AddProductContent(props: any) {
   };
 
   return (
-    <div className="text-white">
+    <div>
+      <div>
+        {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+          <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
+            <Spinner animation="border" style={{ color: "white" }} />
+          </div>
+        </div> : ''}
+      </div>
       <div className="row">
         <button onClick={() => {
           navigate(ROUTES.product);
@@ -171,7 +220,7 @@ export default function AddProductContent(props: any) {
             },
           ]}
         >
-          <Input style={{ width: '660px' }} />
+          <input className="ant-input bg-main" style={{ width: '660px' }} />
         </Form.Item>
 
         <Form.Item
@@ -207,7 +256,7 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>SKU</label>}
           rules={[{ required: true, message: 'Please input sku !' }]}
         >
-          <Input style={{ width: '660px' }} />
+          <input className="ant-input bg-main" style={{ width: '660px' }} />
 
         </Form.Item>
 
@@ -219,13 +268,13 @@ export default function AddProductContent(props: any) {
 
           <ImgCrop rotate>
             <Upload
-              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              action="https://api.gearfocus.div4.pgtest.co/api/products/upload-image"
               listType="picture-card"
               fileList={fileList as []}
               onChange={onChange}
               onPreview={onPreview}
             >
-              <i className="fa-solid fa-camera" style={{ fontSize: '50px' }}></i>
+              <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
             </Upload>
           </ImgCrop>
 
@@ -248,7 +297,26 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Description</label>}
           rules={[{ required: true, message: 'Please enter description !' }]}
         >
-          <TextArea placeholder="Enter text here" style={{ height: 120, width: '660px' }} />
+          <Editor
+
+            onInit={(evt, editor) => editorRef.current = editor}
+            initialValue=""
+            init={{
+              height: 200,
+              marginLeft: '16px',
+              menubar: false,
+              plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table paste code help wordcount'
+              ],
+              toolbar: 'undo redo | formatselect | ' +
+                'bold italic backcolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help',
+              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+            }}
+          />
         </Form.Item>
 
         <Form.Item
@@ -265,53 +333,58 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Memberships</label>}
           name="membership"
         >
-          <Select defaultValue={general} style={{ width: '300px' }}>
-            <Option><Checkbox onChange={(event: any)=>{
-              if(event.target.checked === true) {
-                setGeneral('General');
-              }
-              else if(event.target.checked === false) {
-                setGeneral('');
-              }
-            }}>General</Checkbox></Option>
-          </Select>
+          <Dropdown overlay={menu} trigger={['click']}>
+            <div className="ant-dropdown-link" style={{ height: '40px', width: '400px', backgroundColor: 'rgb(50, 50, 89)', borderRadius: '5px', borderColor: '#13132b' }}>
+              <span className="text-white" style={{ position: 'relative', top: '8px', left: '10px' }}>
+                {general}
+              </span>
+            </div>
+          </Dropdown>
         </Form.Item>
 
+
         <Form.Item
-          label={<label style={{ color: "#fff" }}>Price</label>}
-          rules={[{ required: true, message: 'Please input price !' }]}
           name="price"
+          label={<label className="mr-3" style={{ color: "#fff" }}>Price</label>}
         >
-          <div className="row align-items-center">
-            <Input onChange={(event: any) => {
+          <div className="row">
+
+            <input className="ant-input bg-main" onChange={(event: any) => {
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                 setPrice(value);
               }
-            }} style={{ width: '150px',marginLeft:'16px' }} placeholder="Input a number" value={price} addonAfter="$" />
+            }} value={price} style={{ width: '150px' }} placeholder="Input a number" />
+          </div>
 
-            <Checkbox onChange={(event: any) => {
-              if (event.target.checked === true) {
-                setDisplay('inline-block');
-              }
-              else if (event.target.checked === false) {
-                setDisplay('none');
-              }
-            }} className="ml-5 mr-5 text-white">Sale</Checkbox>
+        </Form.Item>
+        <Form.Item
+          name="priceSale"
+          label={<Checkbox onChange={(event: any) => {
+            if (event.target.checked === true) {
+              setDisplay('inline-block');
+            }
+            else if (event.target.checked === false) {
+              setDisplay('none');
+            }
+          }} className="ml-5 mr-5 text-white">Sale</Checkbox>}
+        >
+          <div className="row" style={{ display: `${display}` }}>
+            <Select defaultValue="$" style={{ width: '50px' }}>
+              <Option value="$">$</Option>
+              <Option value="%">%</Option>
 
-            <Input onChange={(event: any) => {
+            </Select>
+            <input className="ant-input bg-main" onChange={(event: any) => {
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                 setPriceSale(value);
               }
-            }} value={priceSale} style={{ display: `${display}`, width: '250px' }} placeholder="Input a number" addonBefore={<Select defaultValue="USD" style={{ width: 60 }}>
-              <Option value="USD">$</Option>
-              <Option value="EUR">%</Option>
-            </Select>} />
-
+            }} value={priceSale} style={{ width: '150px' }} placeholder="Input a number" />
           </div>
+
         </Form.Item>
 
         <Form.Item
@@ -332,15 +405,15 @@ export default function AddProductContent(props: any) {
           name="stocks"
         >
           <div className="row align-items-center">
-            <Input onChange={(event: any) => {
+            <input className="ant-input bg-main" onChange={(event: any) => {
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                 setStock(value);
               }
-            }} style={{ width: '150px',marginLeft:'16px' }} placeholder="Input a number" value={stock} addonAfter="$" />
+            }} style={{ width: '150px', marginLeft: '16px' }} placeholder="Input a number" value={stock} />
 
-            
+
 
           </div>
         </Form.Item>
@@ -358,13 +431,13 @@ export default function AddProductContent(props: any) {
           name="continental"
         >
           <div className="row align-items-center">
-            <Input onChange={(event: any) => {
+            <input className="ant-input bg-main" onChange={(event: any) => {
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                 setContinentalUS(value);
               }
-            }} style={{ width: '150px',marginLeft:'16px' }} placeholder="Input a number" value={continentalUS} addonAfter="$" />
+            }} style={{ width: '150px', marginLeft: '16px' }} placeholder="Input a number" value={continentalUS} />
           </div>
         </Form.Item>
 
@@ -380,7 +453,7 @@ export default function AddProductContent(props: any) {
         </Form.Item>
 
         <Form.Item >
-          <div className="p-3" style={{ boxShadow: '0 0 13px 0 #b18aff', position: 'fixed', width: '81%', backgroundColor: '#323259', zIndex: '2000', bottom: '0', left: '264px' }}>
+          <div className="p-3" style={{ boxShadow: '0 0 13px 0 #b18aff', position: 'fixed', width: `${renderWidth()}`, backgroundColor: '#323259', zIndex: '2000', bottom: '0' }}>
             <button style={{ backgroundColor: '#f0ad4e' }} className="btn text-white">
               Add Product
             </button>
@@ -411,13 +484,13 @@ export default function AddProductContent(props: any) {
         <Form.Item
           label={<label style={{ color: "#fff" }}>Meta keywords</label>}
         >
-          <Input style={{ width: '300px' }} />
+          <input className="ant-input bg-main" style={{ width: '300px' }} />
         </Form.Item>
 
         <Form.Item
           label={<label style={{ color: "#fff" }}>Product page title</label>}
         >
-          <Input style={{ width: '300px' }} />
+          <input className="ant-input bg-main" style={{ width: '300px' }} />
         </Form.Item>
 
         <Form.Item

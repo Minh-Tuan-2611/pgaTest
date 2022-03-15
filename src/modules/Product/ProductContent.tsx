@@ -3,14 +3,28 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import React, { useEffect, useState } from 'react'
 import { Spinner } from 'react-bootstrap';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../configs/routes';
 import ButtonConfirmDelete from '../ButtonConfirm/ButtonConfirmDelete';
+import ButtonConfirmEnable from '../ButtonConfirm/ButtonConfirmEnable';
 import ButtonConfirmRemoveSelect from '../ButtonConfirm/ButtonConfirmRemoveSelect';
 import './ProductContent.css';
 
 export default function ProductContent() {
+
+  let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
+
+  const renderWidth = ()=>{
+    if(collapsed===true) {
+      return '79%'
+    }
+    if(collapsed===false) {
+      return '90%'
+    }
+  }
+
+
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
@@ -29,7 +43,7 @@ export default function ProductContent() {
 
   let [category, setCategory] = useState(0);
 
-  let [productList, setProductList] = useState([]);
+  let [productList, setProductList] = useState([{ id: '', name: '', category: '', price: '', vendor: '' }]);
 
   let [loading, setLoading] = useState(false);
 
@@ -43,9 +57,13 @@ export default function ProductContent() {
 
   let [count, setCount] = useState(25);
 
-  let [checkAll, setCheckAll] = useState(false);
-
   let [disabled, setDisabled] = useState(true);
+
+  let [order, setOrder] = useState('ASC');
+
+  let [sort, setSort] = useState('name');
+
+  let [display, setDisplay] = useState('flex');
 
   const getCategoryList = () => {
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list');
@@ -62,6 +80,7 @@ export default function ProductContent() {
   }
 
   const getProductList = () => {
+    setDisabled(true);
     setLoading(true);
     let promise = axios.post('https://api.gearfocus.div4.pgtest.co//api/products/list',
       {
@@ -90,6 +109,12 @@ export default function ProductContent() {
 
   const getProductList2 = (sort: any) => {
     setLoading(true);
+    if (order === 'ASC') {
+      setOrder('DESC');
+    }
+    else if (order === 'DESC') {
+      setOrder('ASC');
+    }
     let promise = axios.post('https://api.gearfocus.div4.pgtest.co//api/products/list',
       {
         "page": page,
@@ -100,7 +125,7 @@ export default function ProductContent() {
         "availability": availability,
         "vendor": vendor,
         "sort": sort,
-        "order_by": "ASC",
+        "order_by": order,
         "search_type": searchType
       });
     promise.then((results) => {
@@ -115,7 +140,7 @@ export default function ProductContent() {
     })
   }
 
-  let params = [] as any;
+  let [params, setParams] = useState([] as any)
 
   const { Option } = Select;
 
@@ -125,18 +150,57 @@ export default function ProductContent() {
     getVendorList();
   }, [])
 
+  useEffect(() => {
+    if (params.length === 0) {
+      setDisabled(true);
+    }
+    else if (params.length > 0) {
+      setDisabled(false);
+    }
+  }, [params])
+
+  const renderStatus = (product: any) => {
+    if (product.enabled === "1") {
+      return <i onClick={() => {
+        dispatch({
+          type: 'change_modal',
+          title: 'Confirm Update',
+          content: 'Do you want to update this products ?',
+          button: <ButtonConfirmEnable enable={0} id={product.id} getProductList={getProductList} />
+        })
+      }} style={{ fontSize: '17px', color: '#72b25b', cursor: 'pointer' }} className="fa fa-power-off" data-toggle="modal" data-target="#modelId"></i>
+    }
+    else if (product.enabled === "0") {
+      return <i onClick={() => {
+        dispatch({
+          type: 'change_modal',
+          title: 'Confirm Update',
+          content: 'Do you want to update this products ?',
+          button: <ButtonConfirmEnable enable={1} id={product.id} getProductList={getProductList} />
+        })
+      }} style={{ fontSize: '17px', cursor: 'pointer' }} className="fa fa-power-off" data-toggle="modal" data-target="#modelId"></i>
+    }
+  }
+
+  const renderArrow = (name: string) => {
+    if (order === 'ASC' && name === sort) {
+      return <i className="fa-solid fa-arrow-down"></i>
+    }
+    else if (order === 'DESC' && name === sort) {
+      return <i className="fa-solid fa-arrow-up"></i>
+    }
+    else {
+      return
+    }
+  }
+
   return (
     <div>
-      <div>
-        {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
-          <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
-            <Spinner animation="border" style={{ color: "white" }} />
-          </div>
-        </div> : ''}
-
-      </div>
-
-
+      {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+        <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
+          <Spinner animation="border" style={{ color: "white" }} />
+        </div>
+      </div> : ''}
       <h2 className="text-white mt-2 mb-4">Products</h2>
       <div className="" style={{ backgroundColor: '#323259', position: 'relative', paddingLeft: '40px', padding: '20px' }}>
         <div className="row align-items-center w-100" style={{ paddingLeft: '20px' }}>
@@ -176,7 +240,7 @@ export default function ProductContent() {
           </div>
         </div>
         <hr />
-        <div className="row">
+        <div className="row" style={{ display: `${display}` }}>
           <div className="col-3">
             <div className="row">
               <div className="col-5 text-white">
@@ -206,26 +270,39 @@ export default function ProductContent() {
             </select>
           </div>
           <div className="col-4">
-          <Select
-            showSearch
-            optionFilterProp="children"
-            filterOption={(input: any, option: any) =>
-              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-            style={{ width: '355px' }}
-            listHeight={250}
-            placeholder="Vendor"
-            onChange={(event: any) =>{
-              setVendor(event);
-            }}
-          >
-            {vendorList.map((vendor: any, index: any) => {
-              return <Option key={index} value={vendor.id}>{vendor.name}</Option>
-            })}
-          </Select>
+            <Select
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input: any, option: any) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              style={{ width: '355px' }}
+              listHeight={250}
+              placeholder="Vendor"
+              onChange={(event: any) => {
+                setVendor(event);
+              }}
+            >
+              {vendorList.map((vendor: any, index: any) => {
+                return <Option key={index} value={vendor.id}>{vendor.name}</Option>
+              })}
+            </Select>
           </div>
         </div>
       </div>
+
+      {display === 'flex' ? <div onClick={() => {
+        setDisplay('none');
+      }} className="row" style={{ width: '3%', margin: 'auto', backgroundColor: 'rgb(50, 50, 89)', padding: '4px 12px 4px 12px', cursor: 'pointer', borderRadius: '0 0 10px 10px' }}>
+        <i className="fa-solid fa-arrow-up text-white"></i>
+      </div> : ''}
+
+      {display === 'none' ? <div onClick={() => {
+        setDisplay('flex');
+      }} className="row" style={{ width: '3%', margin: 'auto', backgroundColor: 'rgb(50, 50, 89)', padding: ' 4px 12px 4px 12px', cursor: 'pointer', borderRadius: '0 0 10px 10px' }}>
+        <i className="fa-solid fa-arrow-down text-white"></i>
+      </div> : ''}
+
       <button onClick={() => {
         navigate(ROUTES.addProduct);
       }} className="btn text-white mt-5" style={{ backgroundColor: '#b18aff' }}>Add Product</button>
@@ -234,59 +311,85 @@ export default function ProductContent() {
           <thead>
             <tr>
               <th onChange={(event: any) => {
-                setCheckAll(event.target.checked);
-              }}><Checkbox /></th>
+                // setCheckAll(event.target.checked);
+                if (event.target.checked === true) {
+                  setDisabled(false);
+                  let params3 = [];
+                  for (let i = 0; i < productList.length; i++) {
+                    let data = {
+                      "id": productList[i].id,
+                      "delete": 1
+                    }
+                    params3.push(data);
+                  }
+                  setParams(params3);
+                }
+                else if (event.target.checked === false) {
+                  setDisabled(true);
+                  setParams([]);
+                }
+              }}><Checkbox style={{ position: 'relative', right: '10px' }} /></th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
+                setSort('sku')
                 getProductList2('sku');
-              }}>SKU</th>
+              }}>SKU {renderArrow('sku')}</th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
+                setSort('name')
                 getProductList2('name');
-              }}>Name</th>
+              }}>Name {renderArrow('name')}</th>
               <th>Category</th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
+                setSort('price');
                 getProductList2('price');
-              }}>Price</th>
+              }}>Price {renderArrow('price')}</th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
+                setSort('amount')
                 getProductList2('amount');
-              }}>In stock</th>
+              }}>In stock {renderArrow('amount')}</th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
+                setSort('vendor')
                 getProductList2('vendor');
-              }}>Vendor</th>
+              }}>Vendor {renderArrow('vendor')}</th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
+                setSort('arrivalDate');
                 getProductList2('arrivalDate');
-              }}>Arrival Date</th>
+              }}>Arrival Date {renderArrow('arrivalDate')}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {productList.map((product: any, index: any) => {
-              return <tr>
-                <td><Checkbox onChange={(event: any) => {
-                  // setDisabled(false);
-                  if (event.target.checked === true) {
-                    let data = {
-                      "id": product.id,
-                      "delete": 1
-                    } as Object
-                    params.push(data)
-                  }
-                  else if (event.target.checked === false) {
-                    let index = params.findIndex((item: any) => item.id === product.id);
-                    if (index !== -1) {
-                      params.splice(index, 1);
-                    }
-                    // if (params.length === 0) {
-                    //   setDisabled(true);
-                    // }
-                    // else if (params.length > 0) {
-                    //   setDisabled(false);
-                    // }
-                  }
-                }} /></td>
+              return <tr >
+                <td>
+                  <div className="row d-flex align-items-center" style={{ justifyContent: 'space-around' }}>
+                    <Checkbox checked={params.findIndex((item: any) => item.id === product.id) !== -1} onChange={(event: any) => {
+
+                      if (event.target.checked === true) {
+                        setDisabled(false);
+                        let data = {
+                          "id": product.id,
+                          "delete": 1
+                        } as Object
+                        setParams([...params, data]);
+                      }
+                      else if (event.target.checked === false) {
+                        let index = params.findIndex((item: any) => item.id === product.id);
+                        if (index !== -1) {
+                          let params2 = [...params]
+                          params2.splice(index, 1);
+                          setParams(params2);
+                        }
+                      }
+                    }} />
+
+
+                    {renderStatus(product)}
+                  </div>
+                </td>
                 <td>{product.sku}</td>
-                <td>{product.name.substr(0, 15)}...</td>
+                <td><NavLink to={`/productDetail/${product.id}`}>{product.name.substr(0, 15)}...</NavLink></td>
                 <td>{product.category.substr(0, 17)}...</td>
-                <td>${product.price.substr(0, 7)}</td>
+                <td>${product.price.substr(0, 4)}...</td>
                 <td>{product.amount}</td>
                 <td>{product.vendor.substr(0, 14)}...</td>
                 <td>{new Date(product.arrivalDate * 1000).toLocaleDateString()}</td>
@@ -301,11 +404,12 @@ export default function ProductContent() {
                   }} className="btn text-white" style={{ backgroundColor: '#b18aff' }} data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-trash"></i></button>
                 </td>
               </tr>
+
             })}
           </tbody>
         </table>
-        <div className="p-3" style={{ boxShadow:'0 0 13px 0 #b18aff',position: 'fixed',width:'81%',backgroundColor:'#323259',zIndex:'2000',bottom:'0',left:'264px'}}>
-          <button onClick={() => {
+        <div className="p-3" style={{ boxShadow: '0 0 13px 0 #b18aff', position: 'fixed', width: `${renderWidth()}`, backgroundColor: '#323259', zIndex: '2000', bottom: '0' }}>
+          <button disabled={disabled} onClick={() => {
             dispatch({
               type: 'change_modal',
               title: 'Confirm Delete',
