@@ -25,7 +25,7 @@ export default function UserList() {
         <CssBaseline />
         <Header />
         <Menuu />
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{backgroundColor: 'rgb(33, 33, 57)',height:'1000px'}}>
+        <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{backgroundColor: 'rgb(33, 33, 57)'}}>
           <DrawerHeader />
           <UserListContent/>
         </Box>

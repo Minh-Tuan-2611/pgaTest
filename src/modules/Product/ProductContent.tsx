@@ -15,11 +15,11 @@ export default function ProductContent() {
 
   let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
 
-  const renderWidth = ()=>{
-    if(collapsed===true) {
+  const renderWidth = () => {
+    if (collapsed === true) {
       return '79%'
     }
-    if(collapsed===false) {
+    if (collapsed === false) {
       return '90%'
     }
   }
@@ -145,7 +145,7 @@ export default function ProductContent() {
   const { Option } = Select;
 
   useEffect(() => {
-    getProductList();
+    getProductList2('name');
     getCategoryList();
     getVendorList();
   }, [])
@@ -310,25 +310,25 @@ export default function ProductContent() {
         <table className="table text-white">
           <thead>
             <tr>
-              <th onChange={(event: any) => {
-                // setCheckAll(event.target.checked);
-                if (event.target.checked === true) {
-                  setDisabled(false);
-                  let params3 = [];
-                  for (let i = 0; i < productList.length; i++) {
-                    let data = {
-                      "id": productList[i].id,
-                      "delete": 1
+              <th><Checkbox checked={params.length === productList.length}
+                onChange={(event: any) => {
+                  if (event.target.checked === true) {
+                    setDisabled(false);
+                    let params3 = [];
+                    for (let i = 0; i < productList.length; i++) {
+                      let data = {
+                        "id": productList[i].id,
+                        "delete": 1
+                      }
+                      params3.push(data);
                     }
-                    params3.push(data);
+                    setParams(params3);
                   }
-                  setParams(params3);
-                }
-                else if (event.target.checked === false) {
-                  setDisabled(true);
-                  setParams([]);
-                }
-              }}><Checkbox style={{ position: 'relative', right: '10px' }} /></th>
+                  else if (event.target.checked === false) {
+                    setDisabled(true);
+                    setParams([]);
+                  }
+                }} style={{ position: 'relative', right: '10px' }} /></th>
               <th style={{ cursor: 'pointer' }} onClick={() => {
                 setSort('sku')
                 getProductList2('sku');
