@@ -48,12 +48,11 @@ export default function Header() {
             <Menu>
                 <Menu.Item key="0">
                     <NavLink to="/home">
-                        <div className="">
-                            My profile
-                            <br />
-                            {<p style={{ color: '#000' }}>{email}</p>}
 
-                        </div>
+
+                        {<p style={{ color: '#666' }}>{email}</p>}
+
+
                     </NavLink>
                 </Menu.Item>
                 <Menu.Item onClick={() => {

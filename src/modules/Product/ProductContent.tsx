@@ -63,7 +63,7 @@ export default function ProductContent() {
 
   let [sort, setSort] = useState('name');
 
-  let [display, setDisplay] = useState('flex');
+  let [display, setDisplay] = useState('none');
 
   const getCategoryList = () => {
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list');
@@ -157,7 +157,7 @@ export default function ProductContent() {
     else if (params.length > 0) {
       setDisabled(false);
     }
-  }, [params])
+  }, [params]);
 
   const renderStatus = (product: any) => {
     if (product.enabled === "1") {
@@ -365,7 +365,7 @@ export default function ProductContent() {
                     <Checkbox checked={params.findIndex((item: any) => item.id === product.id) !== -1} onChange={(event: any) => {
 
                       if (event.target.checked === true) {
-                        setDisabled(false);
+                        // setDisabled(false);
                         let data = {
                           "id": product.id,
                           "delete": 1
@@ -373,9 +373,9 @@ export default function ProductContent() {
                         setParams([...params, data]);
                       }
                       else if (event.target.checked === false) {
-                        let index = params.findIndex((item: any) => item.id === product.id);
+                        let params2 = [...params]
+                        let index = params2.findIndex((item: any) => item.id === product.id);
                         if (index !== -1) {
-                          let params2 = [...params]
                           params2.splice(index, 1);
                           setParams(params2);
                         }
@@ -416,7 +416,7 @@ export default function ProductContent() {
               content: 'Do you want to delete all products sellected ?',
               button: <ButtonConfirmRemoveSelect getProductList={getProductList} params={params} />
             })
-            params = [];
+            setParams([])
           }} className="btn text-white" style={{ backgroundColor: '#f0ad4e' }} data-toggle="modal" data-target="#modelId">Remove Selected</button>
         </div>
         <div className="mt-4">
@@ -447,7 +447,7 @@ export default function ProductContent() {
               console.log(results.data.data);
               setLoading(false);
             })
-          }} defaultCurrent={1} defaultPageSize={25} total={1000} />
+          }} defaultCurrent={1} defaultPageSize={25} total={3000} />
         </div>
       </div>
     </div>

@@ -14,10 +14,11 @@ import {
     Switch,
 } from 'antd';
 import { Upload } from 'antd';
-import ImgCrop from 'antd-img-crop';
 import moment from 'moment';
 import { Editor } from '@tinymce/tinymce-react';
 import { useSelector } from 'react-redux';
+import TextArea from 'antd/lib/input/TextArea';
+import Swal from 'sweetalert2';
 
 
 const formItemLayout = {
@@ -48,21 +49,6 @@ export default function ProductDetailContent(props: any) {
 
     const [form] = Form.useForm();
 
-    const menu = (
-        <Menu>
-            <Menu.Item key="0">
-                <Checkbox onChange={(event: any) => {
-                    if (event.target.checked === true) {
-                        setGeneral('General');
-                    }
-                    else if (event.target.checked === false) {
-                        setGeneral('');
-                    }
-                }}>General</Checkbox>
-            </Menu.Item>
-        </Menu>
-    );
-
     const { id } = props;
 
     const navigate = useNavigate();
@@ -71,7 +57,7 @@ export default function ProductDetailContent(props: any) {
         headers: { Authorization: Cookies.get('token') as string },
     };
 
-    let [product, setProduct] = useState({ name: '', vendor_id: '', sale_price_type: '', categories: [{ name: '' }] });
+    let [product, setProduct] = useState({ name: '', vendor_id: '', sale_price_type: '', categories: [{ name: '' }], id: '' });
     let [loading, setLoading] = useState(false);
 
     const getProductDetail = () => {
@@ -92,23 +78,51 @@ export default function ProductDetailContent(props: any) {
                 setProduct(result.data.data);
                 setArrivalDate(result.data.data.arrival_date);
                 setDescription(result.data.data.description);
+                setMetaDescription(result.data.data.meta_description);
+                setOgTag(result.data.data.og_tags);
+                setMetaDescriptionType(result.data.data.meta_desc_type);
+                setTaxExempt(result.data.data.tax_exempt);
+                setCondition(result.data.data.condition_id);
+                setMembership(result.data.data.memberships);
+                if (result.data.data.memberships.length > 0) {
+                    setGeneral('General');
+                }
+                else if (result.data.data.memberships.length === 0) {
+                    setGeneral('');
+                }
+                if (result.data.data.images === []) {
+                    setFileList([]);
+                }
+                else if (result.data.data.images.length > 0) {
+                    let dataImg = [];
+                    for (let i = 0; i < result.data.data.images.length; i++) {
+                        let item = {
+                            uid: result.data.data.images[i].id,
+                            name: result.data.data.images[i].file,
+                            status: 'done',
+                            url: result.data.data.images[i].thumbs[0]
+                        }
+                        dataImg.push(item);
+                    }
+                    setFileList(dataImg);
+                }
                 if (result.data.data.facebook_marketing_enabled === "1") {
-                    setFaceBookFeed(true);
+                    setFaceBookFeed(1);
                 }
                 else if (result.data.data.facebook_marketing_enabled === "0") {
-                    setFaceBookFeed(false);
+                    setFaceBookFeed(0);
                 }
                 if (result.data.data.google_feed_enabled === "1") {
-                    setGoogleFeed(true);
+                    setGoogleFeed(1);
                 }
                 else if (result.data.data.google_feed_enabled === "0") {
-                    setGoogleFeed(false);
+                    setGoogleFeed(0);
                 }
                 if (result.data.data.enabled === "1") {
-                    setEnable(true);
+                    setEnabled(1);
                 }
                 else if (result.data.data.enabled === "0") {
-                    setEnable(false);
+                    setEnabled(0);
                 }
                 if (result.data.data.shipping.length === 0) {
                     setContinentalUS('');
@@ -119,7 +133,7 @@ export default function ProductDetailContent(props: any) {
                 setMetaKeyWord(result.data.data.meta_keywords);
                 let arr = [];
                 for (var i = 0; i < result.data.data.categories.length; i++) {
-                    arr.push(result.data.data.categories[i].name);
+                    arr.push(result.data.data.categories[i].category_id);
                 }
                 setCategory(arr);
                 let id = result.data.data.vendor_id;
@@ -149,9 +163,11 @@ export default function ProductDetailContent(props: any) {
         })
     }
 
-    const [fileList, setFileList] = useState([]);
+    let [fileImg, setFileImg] = useState([] as any);
 
-    let [display, setDisplay] = useState('none');
+    let [fileList, setFileList] = useState([] as any);
+
+    let [display, setDisplay] = useState('inline-block');
 
     let [brandList, setBrandList] = useState([]);
 
@@ -161,8 +177,15 @@ export default function ProductDetailContent(props: any) {
 
     let [countryList, setCountryList] = useState([]);
 
+    let [fileImgDelete, setFileImgDelete] = useState([] as any);
+
     const onChange = (result: any) => {
-        console.log(result.fileList);
+        if (result.file.status === 'removed') {
+            setFileImgDelete([...fileImgDelete, result.file.uid]);
+        }
+        if (result.file.status === 'done') {
+            setFileImg([...fileImg, result.file]);
+        }
         setFileList(result.fileList);
     };
 
@@ -203,26 +226,76 @@ export default function ProductDetailContent(props: any) {
 
     let [sku, setSku] = useState('');
 
-    let [arrivalDate, setArrivalDate] = useState(1);
+    let [arrivalDate, setArrivalDate] = useState('');
 
     let [description, setDescription] = useState('');
 
-    let [faceBookFeed, setFaceBookFeed] = useState(false);
+    let [faceBookFeed, setFaceBookFeed] = useState(0);
 
-    let [googleFeed, setGoogleFeed] = useState(false);
-
-    let [enable, setEnable] = useState(false);
+    let [googleFeed, setGoogleFeed] = useState(0);
 
     let [metaKeyWord, setMetaKeyWord] = useState('');
 
     let [category, setCategory] = useState([] as Array<string>);
+
+    let [ogTagType, setOgTagType] = useState('0');
+
+    let [ogTag, setOgTag] = useState('');
+
+    let [displayOgTag, setDisplayOgTag] = useState('none');
+
+    let [displayMetaDescription, setDisplayMetaDescription] = useState('none');
+
+    let [metaDescriptionType, setMetaDescriptionType] = useState('A');
+
+    let [metaDescription, setMetaDescription] = useState('');
+
+    let [taxExempt, setTaxExempt] = useState("0");
+
+    let [condition, setCondition] = useState("262");
+
+    let [enabled, setEnabled] = useState(0);
+
+    let [membership, setMembership] = useState([] as Array<number>);
+
+    const renderCheckbox = () => {
+
+
+        return <Checkbox defaultChecked={membership.length > 0} onChange={(event: any) => {
+            if (event.target.checked === true) {
+                setMembership([4])
+                setGeneral('General');
+            }
+            else if (event.target.checked === false) {
+                setGeneral('');
+                setMembership([]);
+            }
+        }} >General</Checkbox>
+
+    }
+
+    const menu = (
+        <Menu>
+            <Menu.Item key="0">
+                {renderCheckbox()}
+            </Menu.Item>
+        </Menu>
+    );
+
+    const setDisable = () => {
+        if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList !== [] && category !== [] && price !== '' && stock !== '' && continentalUS !== '') {
+            return false;
+        }
+        else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList === [] || category === [] || price === '' || stock === '' || continentalUS === '') {
+            return true;
+        }
+    }
 
     const getBrandList = () => {
         setLoading(true);
         let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/brands/list', config);
         promise.then((results) => {
             setBrandList(results.data.data);
-            // setLoading(false);
         })
     }
 
@@ -241,7 +314,6 @@ export default function ProductDetailContent(props: any) {
         let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list');
         promise.then((results) => {
             setCategoryList(results.data.data);
-            // setLoading(false);
         })
     }
 
@@ -250,7 +322,6 @@ export default function ProductDetailContent(props: any) {
         let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/commons/country', config);
         promise.then((result) => {
             setCountryList(result.data.data);
-            // setLoading(false);
         })
     }
 
@@ -262,9 +333,118 @@ export default function ProductDetailContent(props: any) {
         getProductDetail();
     }, [])
 
-    const onFinish = (values: any) => {
-        setDescription(editorRef.current.getContent())
-        console.log('Received values of form: ', values);
+    const onFinish = () => {
+        if (editorRef.current.getContent() !== null && fileList.length > 0) {
+            setLoading(true);
+            let img = [];
+            for (var i = 0; i < fileImg.length; i++) {
+                img.push(fileImg[i].name);
+            }
+            let bodyFormData = new FormData();
+            bodyFormData.append('productDetail', JSON.stringify({
+                "vendor_id": vendor,
+                "name": productTitle,
+                "brand_id": brand,
+                "condition_id": condition,
+                "categories": category,
+                "description": editorRef.current.getContent(),
+                "enabled": enabled,
+                "memberships": membership,
+                "shipping_to_zones": [{ id: "1", price: continentalUS }],
+                "tax_exempt": taxExempt,
+                "price": price,
+                "sale_price_type": priceSaleType,
+                "arrival_date": arrivalDate,
+                "inventory_tracking": 0,
+                "quantity": stock,
+                "sku": sku,
+                "participate_sale": 0,
+                "sale_price": priceSale,
+                "og_tags_type": ogTagType,
+                "og_tags": ogTag,
+                "meta_desc_type": metaDescriptionType,
+                "meta_description": metaDescription,
+                "meta_keywords": metaKeyWord,
+                "product_page_title": productPageTitle,
+                "facebook_marketing_enabled": faceBookFeed,
+                "google_feed_enabled": googleFeed,
+                "imagesOrder": img,
+                "id": product.id,
+                "deleted_images": fileImgDelete,
+            }));
+            let promise = axios({
+                method: "post",
+                url: "https://api.gearfocus.div4.pgtest.co/apiAdmin/products/create",
+                data: bodyFormData,
+                headers: config.headers,
+            })
+
+            promise.then((result) => {
+                console.log(result);
+                if (result.data.success === true) {
+                    if (fileImg.length > 0) {
+                        for (let i = 0; i < fileImg.length; i++) {
+                            let id = result.data.data;
+                            let bodyFormData = new FormData();
+                            bodyFormData.append('productId', id);
+                            bodyFormData.append('order', JSON.stringify(0));
+                            bodyFormData.append('images[]', fileImg[i].originFileObj);
+                            let promise = axios({
+                                method: 'post',
+                                url: 'https://api.gearfocus.div4.pgtest.co/api/products/upload-image',
+                                data: bodyFormData,
+                                headers: config.headers
+                            })
+                            promise.then((result) => {
+                                if (result.data.success === true) {
+                                    navigate(`/productDetail/${id}`);
+                                    // getProductDetail();
+                                    setLoading(false);
+                                    Swal.fire(
+                                        'Update Product Success !',
+                                        '',
+                                        'success'
+                                    )
+                                }
+                                else if (result.data.success === false) {
+                                    setLoading(false);
+                                    Swal.fire(
+                                        `${result.data.errors}`,
+                                        '',
+                                        'error'
+                                    )
+                                }
+                            })
+                        }
+                    }
+                    else if (fileImg.length === 0) {
+                        navigate(`/productDetail/${id}`);
+                        setLoading(false);
+                        Swal.fire(
+                            'Update Product Success !',
+                            '',
+                            'success'
+                        )
+                    }
+                }
+                else if (result.data.success === false) {
+                    setLoading(false);
+                    Swal.fire(
+                        `${result.data.errors}`,
+                        '',
+                        'error'
+                    )
+                }
+            })
+
+            promise.catch((error) => {
+                Swal.fire(
+                    'Create Product Fail !',
+                    '',
+                    'error'
+                )
+            })
+        }
     };
 
     if (loading === true) {
@@ -294,12 +474,6 @@ export default function ProductDetailContent(props: any) {
                     <Form.Item
                         name="vendor"
                         label={<label style={{ color: "#fff" }}>Vendor</label>}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please input your Vendor !',
-                            },
-                        ]}
                     >
 
                         <Select
@@ -310,6 +484,10 @@ export default function ProductDetailContent(props: any) {
                             }
                             style={{ width: '660px' }}
                             placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{vendor}</p>}
+                            onChange={(value: any) => {
+
+                                setVendor(value);
+                            }}
                         >
                             {vendorList.map((vendor: any, index: any) => {
                                 return <Option key={index} value={vendor.id}>{vendor.name}</Option>
@@ -321,15 +499,10 @@ export default function ProductDetailContent(props: any) {
                     <Form.Item
                         name="Product title"
                         label={<label style={{ color: "#fff" }}>Product title</label>}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please input your product title !',
-                            },
-                        ]}
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
+
                                 setProductTitle(event.target.value);
                             }} value={productTitle} className="ant-input bg-main ml-3" style={{ width: '658px' }} />
                         </div>
@@ -339,14 +512,11 @@ export default function ProductDetailContent(props: any) {
                         style={{ color: '#fff' }}
                         name="brand"
                         label={<label style={{ color: "#fff" }}>Brand</label>}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please select type brand !',
-                            },
-                        ]}
                     >
-                        <Select style={{ width: '660px' }} placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{brand}</p>}>
+                        <Select onChange={(value: any) => {
+
+                            setBrand(value);
+                        }} style={{ width: '660px' }} placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{brand}</p>}>
                             {brandList.map((brand: any, index: any) => {
                                 return <Option key={index} value={brand.id}>{brand.name}</Option>
                             })}
@@ -356,20 +526,22 @@ export default function ProductDetailContent(props: any) {
                     <Form.Item
                         name="condition"
                         label={<label style={{ color: "#fff" }}>Condition</label>}
-                        rules={[{ required: true, message: 'Please select condition !' }]}
                     >
-                        <Select style={{ width: '660px' }} placeholder="select condition">
-                            <Option value="used">Used</Option>
+                        <Select onChange={(value: any) => {
+                            setCondition(value);
+                        }} style={{ width: '660px' }} placeholder="select condition">
+                            <Option value="262">None</Option>
+                            <Option value="292">Used</Option>
                         </Select>
                     </Form.Item>
 
                     <Form.Item
                         name="sku"
                         label={<label style={{ color: "#fff" }}>SKU</label>}
-                        rules={[{ required: true, message: 'Please input sku !' }]}
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
+
                                 setSku(event.target.value);
                             }} value={sku} className="ant-input bg-main ml-3" style={{ width: '660px' }} />
                         </div>
@@ -379,27 +551,24 @@ export default function ProductDetailContent(props: any) {
                     <Form.Item
                         name="images"
                         label={<label style={{ color: "#fff" }}>Images</label>}
-                        rules={[{ required: true, message: 'Please input images !' }]}
                     >
 
-                        <ImgCrop rotate>
-                            <Upload
-                                action="https://api.gearfocus.div4.pgtest.co/api/products/upload-image"
-                                listType="picture-card"
-                                fileList={fileList as []}
-                                onChange={onChange}
-                                onPreview={onPreview}
-                            >
-                                <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
-                            </Upload>
-                        </ImgCrop>
+
+                        <Upload
+                            action="https://api.gearfocus.div4.pgtest.co/api/products/upload-image"
+                            listType="picture-card"
+                            fileList={fileList as []}
+                            onChange={onChange}
+                            onPreview={onPreview}
+                        >
+                            <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
+                        </Upload>
 
                     </Form.Item>
 
                     <Form.Item
                         name="category"
                         label={<label style={{ color: "#fff" }}>Category</label>}
-                        rules={[{ required: true, message: 'Please select category !' }]}
                     >
                         <Select onChange={(value: any) => {
                             setCategory(value);
@@ -413,11 +582,9 @@ export default function ProductDetailContent(props: any) {
                     <Form.Item
                         name="description"
                         label={<label style={{ color: "#fff" }}>Description</label>}
-                        rules={[{ required: true, message: 'Please enter description !' }]}
                     >
                         <div className="row">
                             <Editor
-
                                 onInit={(evt, editor) => editorRef.current = editor}
                                 initialValue={description}
                                 init={{
@@ -446,8 +613,13 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <Switch onChange={(checked: any) => {
-                                setGoogleFeed(checked);
-                            }} className="ml-3" checkedChildren="YES" unCheckedChildren="NO" defaultChecked={enable} />
+                                if (checked === true) {
+                                    setEnabled(1);
+                                }
+                                else if (checked === false) {
+                                    setEnabled(0);
+                                }
+                            }} className="ml-3" checkedChildren="YES" unCheckedChildren="NO" defaultChecked={enabled === 1} />
                         </div>
                     </Form.Item>
 
@@ -460,12 +632,26 @@ export default function ProductDetailContent(props: any) {
                         name="membership"
                     >
                         <Dropdown overlay={menu} trigger={['click']}>
-                            <div className="ant-dropdown-link" style={{ height: '40px', width: '400px', backgroundColor: 'rgb(50, 50, 89)', borderRadius: '5px', borderColor: '#13132b' }}>
+                            <div className="ant-dropdown-link" style={{ height: '40px', width: '400px', backgroundColor: '#252547', borderRadius: '5px', borderColor: 'rgb(19, 19, 43)' }}>
                                 <span className="text-white" style={{ position: 'relative', top: '8px', left: '10px' }}>
                                     {general}
                                 </span>
                             </div>
                         </Dropdown>
+                    </Form.Item>
+
+                    <Form.Item
+                        label={<label style={{ color: "#fff" }}>Tax Exempt</label>}
+                        name="taxExemp"
+                    >
+                        <Checkbox defaultChecked={taxExempt === "1"} onChange={(event: any) => {
+                            if (event.target.checked === true) {
+                                setTaxExempt("1");
+                            }
+                            else if (event.target.checked === false) {
+                                setTaxExempt("0");
+                            }
+                        }} />
                     </Form.Item>
 
 
@@ -478,6 +664,7 @@ export default function ProductDetailContent(props: any) {
                                 $
                             </div>
                             <input className="ant-input bg-main" onChange={(event: any) => {
+
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -489,7 +676,7 @@ export default function ProductDetailContent(props: any) {
                     </Form.Item>
                     <Form.Item
                         name="priceSale"
-                        label={<Checkbox onChange={(event: any) => {
+                        label={<Checkbox defaultChecked={priceSale !== ''} onChange={(event: any) => {
                             if (event.target.checked === true) {
                                 setDisplay('inline-block');
                             }
@@ -500,12 +687,14 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row" style={{ display: `${display}`, marginLeft: '2px' }}>
                             <Select onChange={(value: any) => {
+
                                 setPriceSaleType(value);
                             }} placeholder={priceSaleType} style={{ width: '50px' }}>
                                 <Option value="$">$</Option>
                                 <Option value="%">%</Option>
                             </Select>
                             <input className="ant-input bg-main" onChange={(event: any) => {
+
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -524,17 +713,19 @@ export default function ProductDetailContent(props: any) {
                             <div className="mr-2" style={{ padding: '5px 20px 5px 20px', backgroundColor: 'rgba(180,180,219,.24)', borderRadius: '5px' }}>
                                 <i className="fa-solid fa-calendar" style={{ color: 'rgba(180,180,219,.48)' }}></i>
                             </div>
-                            <DatePicker defaultValue={moment(arrivalDate * 1000)} />
+                            <DatePicker onChange={(event: any) => {
+                                setArrivalDate(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
+                            }} defaultValue={moment(parseInt(arrivalDate) * 1000)} />
                         </div>
                     </Form.Item>
 
                     <Form.Item
                         label={<label style={{ color: "#fff" }}>Quantity in stock</label>}
-                        rules={[{ required: true, message: 'Please input quantity stock !' }]}
                         name="stocks"
                     >
                         <div className="row align-items-center">
                             <input className="ant-input bg-main" onChange={(event: any) => {
+
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -551,12 +742,6 @@ export default function ProductDetailContent(props: any) {
                     <h3 className="mt-3 mb-3 text-white">Shipping</h3>
                     <Form.Item
                         label={<label style={{ color: "#fff" }}>Continental U.S</label>}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'This field is required !',
-                            },
-                        ]}
                         name="continental"
                     >
                         <div className="row align-items-center">
@@ -564,6 +749,7 @@ export default function ProductDetailContent(props: any) {
                                 $
                             </div>
                             <input className="ant-input bg-main" onChange={(event: any) => {
+
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -577,7 +763,9 @@ export default function ProductDetailContent(props: any) {
                         label={<label style={{ color: "#fff" }}>Add Shipping Location</label>}
                         name="location"
                     >
-                        <Select style={{ width: '300px' }} placeholder="Select new zone">
+                        <Select onChange={(value: any) => {
+
+                        }} style={{ width: '300px' }} placeholder="Select new zone">
                             {countryList.map((country: any, index: any) => {
                                 return <Option key={index}>{country.country}</Option>
                             })}
@@ -586,7 +774,7 @@ export default function ProductDetailContent(props: any) {
 
                     <Form.Item >
                         <div className="p-3" style={{ boxShadow: '0 0 13px 0 #b18aff', position: 'fixed', width: `${renderWidth()}`, backgroundColor: '#323259', zIndex: '2000', bottom: '0' }}>
-                            <button style={{ backgroundColor: '#f0ad4e' }} className="btn text-white">
+                            <button disabled={setDisable()} style={{ backgroundColor: '#f0ad4e' }} className="btn text-white">
                                 Update Product
                             </button>
                         </div>
@@ -598,19 +786,41 @@ export default function ProductDetailContent(props: any) {
                     <Form.Item
                         label={<label style={{ color: "#fff" }}>Open Graph meta tags</label>}
                     >
-                        <Select style={{ width: '300px' }} defaultValue="Autogenerated">
-                            <Option>Autogenerated</Option>
-                            <Option>Custom</Option>
+                        <Select onChange={(value: any) => {
+
+                            setOgTagType(value);
+                            if (value === "0") {
+                                setDisplayOgTag('none');
+                            }
+                            else if (value === "1") {
+                                setDisplayOgTag('block');
+                            }
+                        }} style={{ width: '300px' }} defaultValue={ogTagType}>
+                            <Option value="0">Autogenerated</Option>
+                            <Option value="1">Custom</Option>
                         </Select>
+                        <br />
+                        <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value); }} />
                     </Form.Item>
 
                     <Form.Item
                         label={<label style={{ color: "#fff" }}>Meta description</label>}
                     >
-                        <Select style={{ width: '300px' }} defaultValue="Autogenerated">
-                            <Option>Autogenerated</Option>
-                            <Option>Custom</Option>
+                        <Select onChange={(value: any) => {
+
+                            setMetaDescriptionType(value);
+                            if (value === "A") {
+                                setDisplayMetaDescription('none');
+                            }
+                            else if (value === "C") {
+                                setDisplayMetaDescription('block')
+                            }
+                        }} style={{ width: '300px' }} defaultValue={metaDescriptionType}>
+                            <Option value="A">Autogenerated</Option>
+                            <Option value="C">Custom</Option>
                         </Select>
+                        <br />
+                        <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value); }} />
                     </Form.Item>
 
                     <Form.Item
@@ -618,6 +828,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
+
                                 setMetaKeyWord(event.target.value);
                             }} value={metaKeyWord} className="ant-input bg-main ml-3" style={{ width: '300px' }} />
                         </div>
@@ -628,6 +839,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
+
                                 setProductPageTitle(event.target.value);
                             }} value={productPageTitle} className="ant-input bg-main ml-3" style={{ width: '300px' }} />
                         </div>
@@ -639,8 +851,13 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <Switch onChange={(checked: any) => {
-                                setFaceBookFeed(checked);
-                            }} className="ml-3" checkedChildren="YES" unCheckedChildren="NO" defaultChecked={faceBookFeed} />
+                                if (checked === true) {
+                                    setFaceBookFeed(1);
+                                }
+                                else if (checked === false) {
+                                    setFaceBookFeed(0);
+                                }
+                            }} className="ml-3" checkedChildren="YES" unCheckedChildren="NO" defaultChecked={faceBookFeed === 1} />
                         </div>
                     </Form.Item>
 
@@ -650,8 +867,13 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <Switch onChange={(checked: any) => {
-                                setGoogleFeed(checked);
-                            }} className="ml-3" checkedChildren="YES" unCheckedChildren="NO" defaultChecked={googleFeed} />
+                                if (checked === true) {
+                                    setGoogleFeed(1);
+                                }
+                                else if (checked === false) {
+                                    setGoogleFeed(0);
+                                }
+                            }} className="ml-3" checkedChildren="YES" unCheckedChildren="NO" defaultChecked={googleFeed === 1} />
                         </div>
                     </Form.Item>
                 </Form>

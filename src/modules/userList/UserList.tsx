@@ -6,6 +6,7 @@ import Menuu from '../component/Menuu'
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
+import UserListContent from './UserListContent'
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -26,7 +27,7 @@ export default function UserList() {
         <Menuu />
         <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{backgroundColor: 'rgb(33, 33, 57)',height:'1000px'}}>
           <DrawerHeader />
-          <p className="text-white">User List</p>
+          <UserListContent/>
         </Box>
       </Box>
     )

@@ -12,13 +12,14 @@ import {
 } from 'antd';
 
 import { Upload } from 'antd';
-import ImgCrop from 'antd-img-crop';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import TextArea from 'antd/lib/input/TextArea';
 import { Spinner } from 'react-bootstrap';
 import { Editor } from '@tinymce/tinymce-react';
 import { useSelector } from 'react-redux';
+import moment from 'moment';
+import Swal from 'sweetalert2';
 
 const formItemLayout = {
   labelCol: {
@@ -33,26 +34,30 @@ const { Option } = Select;
 
 export default function AddProductContent(props: any) {
 
+  const navigate = useNavigate()
+
   let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
 
-    const renderWidth = ()=>{
-        if(collapsed===true) {
-          return '81%'
-        }
-        if(collapsed===false) {
-          return '92%'
-        }
-      }
+  const renderWidth = () => {
+    if (collapsed === true) {
+      return '81%'
+    }
+    if (collapsed === false) {
+      return '92%'
+    }
+  }
 
   const menu = (
     <Menu>
       <Menu.Item key="0">
         <Checkbox onChange={(event: any) => {
           if (event.target.checked === true) {
+            setMembership([4])
             setGeneral('General');
           }
           else if (event.target.checked === false) {
             setGeneral('');
+            setMembership([]);
           }
         }}>General</Checkbox>
       </Menu.Item>
@@ -65,11 +70,9 @@ export default function AddProductContent(props: any) {
     headers: { Authorization: Cookies.get('token') as string },
   };
 
-  const navigate = useNavigate()
-
   const [form] = Form.useForm();
 
-  const [fileList, setFileList] = useState([]);
+  let [fileList, setFileList] = useState([{ name: '', uid: '', originFileObj: {} as Blob }]);
 
   let [display, setDisplay] = useState('none');
 
@@ -82,7 +85,7 @@ export default function AddProductContent(props: any) {
   let [countryList, setCountryList] = useState([]);
 
   const onChange = (result: any) => {
-    console.log(result.fileList);
+    console.log(result);
     setFileList(result.fileList);
   };
 
@@ -103,6 +106,42 @@ export default function AddProductContent(props: any) {
 
   let [loading, setLoading] = useState(false);
 
+  let [vendor, setVendor] = useState('');
+
+  let [productTitle, setProductTitle] = useState('');
+
+  let [productPageTitle, setProductPageTitle] = useState('');
+
+  let [brand, setBrand] = useState('');
+
+  let [sku, setSku] = useState('');
+
+  let [enabled, setEnabled] = useState(0);
+
+  let [arrivalDate, setArrivalDate] = useState('');
+
+  let [faceBookFeed, setFaceBookFeed] = useState(0);
+
+  let [googleFeed, setGoogleFeed] = useState(0);
+
+  let [metaKeyWord, setMetaKeyWord] = useState('');
+
+  let [category, setCategory] = useState([] as Array<string>);
+
+  let [ogTagType, setOgTagType] = useState('0');
+
+  let [ogTag, setOgTag] = useState('');
+
+  let [displayOgTag, setDisplayOgTag] = useState('none');
+
+  let [displayMetaDescription, setDisplayMetaDescription] = useState('none');
+
+  let [metaDescriptionType, setMetaDescriptionType] = useState('A');
+
+  let [metaDescription, setMetaDescription] = useState('');
+
+  let [priceSaleType, setPriceSaleType] = useState('$');
+
   let [stock, setStock] = useState('');
 
   let [price, setPrice] = useState('');
@@ -112,6 +151,16 @@ export default function AddProductContent(props: any) {
   let [continentalUS, setContinentalUS] = useState('');
 
   let [general, setGeneral] = useState('');
+
+  let [taxExempt, setTaxExempt] = useState(0);
+
+  let [membership, setMembership] = useState([] as Array<number>);
+
+  let [condition, setCondition] = useState("262");
+
+  let [imgError, setImageError] = useState('');
+
+  let [descError, setDescError] = useState('');
 
   const getBrandList = () => {
     setLoading(true);
@@ -156,9 +205,125 @@ export default function AddProductContent(props: any) {
     getCountryList();
   }, [])
 
+  const setDisable = () => {
+    if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList !== [] && category !== [] && price !== '' && stock !== '' && continentalUS !== '') {
+      return false;
+    }
+    else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList === [] || category === [] || price === '' || stock === '' || continentalUS === '') {
+      return true;
+    }
+  }
 
   const onFinish = (values: any) => {
-    console.log('Received values of form: ', values);
+    if (editorRef.current.getContent() !== null && fileList.length > 0) {
+      setImageError('');
+      setDescError('');
+      setLoading(true);
+      let img = [];
+      for (var i = 0; i < fileList.length; i++) {
+        img.push(fileList[i].name);
+      }
+      let bodyFormData = new FormData();
+      bodyFormData.append('productDetail', JSON.stringify({
+        "vendor_id": vendor,
+        "name": productTitle,
+        "brand_id": brand,
+        "condition_id": condition,
+        "categories": category,
+        "description": editorRef.current.getContent(),
+        "enabled": enabled,
+        "memberships": membership,
+        "shipping_to_zones": [{ id: "1", price: continentalUS }],
+        "tax_exempt": taxExempt,
+        "price": price,
+        "sale_price_type": priceSaleType,
+        "arrival_date": arrivalDate,
+        "inventory_tracking": 0,
+        "quantity": stock,
+        "sku": sku,
+        "participate_sale": 0,
+        "sale_price": priceSale,
+        "og_tags_type": ogTagType,
+        "og_tags": ogTag,
+        "meta_desc_type": metaDescriptionType,
+        "meta_description": metaDescription,
+        "meta_keywords": metaKeyWord,
+        "product_page_title": productPageTitle,
+        "facebook_marketing_enabled": faceBookFeed,
+        "google_feed_enabled": googleFeed,
+        "imagesOrder": img,
+        "deleted_images": [],
+      }));
+      let promise = axios({
+        method: "post",
+        url: "https://api.gearfocus.div4.pgtest.co/apiAdmin/products/create",
+        data: bodyFormData,
+        headers: config.headers,
+      })
+
+      promise.then((result) => {
+        console.log(result);
+        if (result.data.success === true) {
+          for (let i = 0; i < fileList.length; i++) {
+            let id = result.data.data;
+            let bodyFormData = new FormData();
+            bodyFormData.append('productId', id);
+            bodyFormData.append('order', JSON.stringify(0));
+            bodyFormData.append('images[]', fileList[i].originFileObj);
+            let promise = axios({
+              method: 'post',
+              url: 'https://api.gearfocus.div4.pgtest.co/api/products/upload-image',
+              data: bodyFormData,
+              headers: config.headers
+            })
+            promise.then((result) => {
+              if (result.data.success === true) {
+                navigate(`/productDetail/${id}`);
+                setLoading(false);
+                Swal.fire(
+                  'Create Product Success !',
+                  '',
+                  'success'
+                )
+              }
+              else if (result.data.success === false) {
+                setLoading(false);
+                Swal.fire(
+                  `${result.data.errors}`,
+                  '',
+                  'error'
+                )
+              }
+            })
+          }
+        }
+        else if (result.data.success === false) {
+          setLoading(false);
+          Swal.fire(
+            `${result.data.errors}`,
+            '',
+            'error'
+          )
+        }
+      })
+
+      promise.catch((error) => {
+        Swal.fire(
+          'Create Product Fail !',
+          '',
+          'error'
+        )
+      })
+    }
+    else {
+      if (fileList.length === 0) {
+        setImageError('Image is required !');
+      }
+      if (editorRef.current.getContent() === null) {
+        setDescError('Description is required !');
+      }
+
+    }
   };
 
   return (
@@ -203,6 +368,9 @@ export default function AddProductContent(props: any) {
             }
             style={{ width: '660px' }}
             placeholder="select vendor name"
+            onChange={(value: any) => {
+              setVendor(value);
+            }}
           >
             {vendorList.map((vendor: any, index: any) => {
               return <Option key={index} value={vendor.id}>{vendor.name}</Option>
@@ -220,7 +388,9 @@ export default function AddProductContent(props: any) {
             },
           ]}
         >
-          <input className="ant-input bg-main" style={{ width: '660px' }} />
+          <input onChange={(event: any) => {
+            setProductTitle(event.target.value);
+          }} className="ant-input bg-main" style={{ width: '660px' }} />
         </Form.Item>
 
         <Form.Item
@@ -234,7 +404,9 @@ export default function AddProductContent(props: any) {
             },
           ]}
         >
-          <Select style={{ width: '660px' }} placeholder="select brand name">
+          <Select onChange={(value: any) => {
+            setBrand(value);
+          }} style={{ width: '660px' }} placeholder="select brand name">
             {brandList.map((brand: any, index: any) => {
               return <Option key={index} value={brand.id}>{brand.name}</Option>
             })}
@@ -244,10 +416,13 @@ export default function AddProductContent(props: any) {
         <Form.Item
           name="condition"
           label={<label style={{ color: "#fff" }}>Condition</label>}
-          rules={[{ required: true, message: 'Please select condition !' }]}
+        // rules={[{ required: true, message: 'Please select condition !' }]}
         >
-          <Select style={{ width: '660px' }} placeholder="select condition">
-            <Option value="used">Used</Option>
+          <Select onChange={(value: any) => {
+            setCondition(value);
+          }} defaultValue={condition} style={{ width: '660px' }} placeholder="select condition">
+            <Option value="262">None</Option>
+            <Option value="292">Used</Option>
           </Select>
         </Form.Item>
 
@@ -256,27 +431,28 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>SKU</label>}
           rules={[{ required: true, message: 'Please input sku !' }]}
         >
-          <input className="ant-input bg-main" style={{ width: '660px' }} />
+          <input onChange={(event: any) => {
+            setSku(event.target.value);
+          }} className="ant-input bg-main" style={{ width: '660px' }} />
 
         </Form.Item>
 
         <Form.Item
           name="images"
           label={<label style={{ color: "#fff" }}>Images</label>}
-          rules={[{ required: true, message: 'Please input images !' }]}
+        // rules={[{ required: true, message: 'Please input images !' }]}
         >
 
-          <ImgCrop rotate>
-            <Upload
-              action="https://api.gearfocus.div4.pgtest.co/api/products/upload-image"
-              listType="picture-card"
-              fileList={fileList as []}
-              onChange={onChange}
-              onPreview={onPreview}
-            >
-              <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
-            </Upload>
-          </ImgCrop>
+          <Upload
+            action="https://api.gearfocus.div4.pgtest.co/api/products/upload-image"
+            listType="picture-card"
+            fileList={fileList as []}
+            onChange={onChange}
+            onPreview={onPreview}
+          >
+            <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
+          </Upload>
+          <p className="text-danger">{imgError}</p>
 
         </Form.Item>
 
@@ -285,7 +461,9 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Category</label>}
           rules={[{ required: true, message: 'Please select category !' }]}
         >
-          <Select mode="tags" style={{ width: '660px' }} placeholder="Type categories name to select">
+          <Select onChange={(value: any) => {
+            setCategory(value);
+          }} mode="multiple" style={{ width: '660px' }} placeholder="Type categories name to select">
             {categoryList.map((category: any, index: any) => {
               return <Option key={index} value={category.id}>{category.name}</Option>
             })}
@@ -295,35 +473,47 @@ export default function AddProductContent(props: any) {
         <Form.Item
           name="description"
           label={<label style={{ color: "#fff" }}>Description</label>}
-          rules={[{ required: true, message: 'Please enter description !' }]}
+        // rules={[{ required: true, message: 'Please enter description !' }]}
         >
-          <Editor
-
-            onInit={(evt, editor) => editorRef.current = editor}
-            initialValue=""
-            init={{
-              height: 200,
-              marginLeft: '16px',
-              menubar: false,
-              plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
-                'searchreplace visualblocks code fullscreen',
-                'insertdatetime media table paste code help wordcount'
-              ],
-              toolbar: 'undo redo | formatselect | ' +
-                'bold italic backcolor | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | help',
-              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-            }}
-          />
+          <div className="row">
+            <Editor
+              onInit={(evt, editor) => editorRef.current = editor}
+              initialValue=""
+              init={{
+                height: 200,
+                marginLeft: '16px',
+                menubar: false,
+                plugins: [
+                  'advlist autolink lists link image charmap print preview anchor',
+                  'searchreplace visualblocks code fullscreen',
+                  'insertdatetime media table paste code help wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+              }}
+            />
+            <p className="text-danger">{descError}</p>
+          </div>
         </Form.Item>
 
         <Form.Item
           name=""
           label={<label style={{ color: "#fff" }}>Available for sale</label>}
         >
-          <Switch checkedChildren="YES" unCheckedChildren="NO" />
+          <div className="row">
+
+          </div>
+          <Switch onChange={(checked: any) => {
+            if (checked === true) {
+              setEnabled(1);
+            }
+            else if (checked === false) {
+              setEnabled(0);
+            }
+          }} checkedChildren="YES" unCheckedChildren="NO" />
         </Form.Item>
 
         <div className="" style={{ display: 'block', height: '20px', backgroundColor: '#323259', boxShadow: 'inset 0 5px 5px -5px rgba(0,0,0,.75)', marginRight: '-17.25rem', marginLeft: '-2.25rem' }}></div>
@@ -334,7 +524,7 @@ export default function AddProductContent(props: any) {
           name="membership"
         >
           <Dropdown overlay={menu} trigger={['click']}>
-            <div className="ant-dropdown-link" style={{ height: '40px', width: '400px', backgroundColor: 'rgb(50, 50, 89)', borderRadius: '5px', borderColor: '#13132b' }}>
+            <div className="ant-dropdown-link" style={{ height: '40px', width: '400px', backgroundColor: '#252547', borderRadius: '5px', borderColor: 'rgb(19, 19, 43)' }}>
               <span className="text-white" style={{ position: 'relative', top: '8px', left: '10px' }}>
                 {general}
               </span>
@@ -342,14 +532,29 @@ export default function AddProductContent(props: any) {
           </Dropdown>
         </Form.Item>
 
+        <Form.Item
+          label={<label style={{ color: "#fff" }}>Tax Exempt</label>}
+          name="taxExemp"
+        >
+          <Checkbox checked={taxExempt === 1} onChange={(event: any) => {
+            if (event.target.checked === true) {
+              setTaxExempt(1);
+            }
+            else if (event.target.checked === false) {
+              setTaxExempt(0);
+            }
+          }} />
+        </Form.Item>
+
 
         <Form.Item
           name="price"
           label={<label className="mr-3" style={{ color: "#fff" }}>Price</label>}
+          rules={[{ required: true, message: 'Please input quantity price !' }]}
         >
           <div className="row">
 
-            <input className="ant-input bg-main" onChange={(event: any) => {
+            <input className="ant-input bg-main ml-3" onChange={(event: any) => {
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -371,7 +576,9 @@ export default function AddProductContent(props: any) {
           }} className="ml-5 mr-5 text-white">Sale</Checkbox>}
         >
           <div className="row" style={{ display: `${display}` }}>
-            <Select defaultValue="$" style={{ width: '50px' }}>
+            <Select className="ml-3" onChange={(value: any) => {
+              setPriceSaleType(value);
+            }} defaultValue={priceSaleType} style={{ width: '50px' }}>
               <Option value="$">$</Option>
               <Option value="%">%</Option>
 
@@ -395,7 +602,10 @@ export default function AddProductContent(props: any) {
             <div className="mr-2" style={{ padding: '5px 20px 5px 20px', backgroundColor: 'rgba(180,180,219,.24)', borderRadius: '5px' }}>
               <i className="fa-solid fa-calendar" style={{ color: 'rgba(180,180,219,.48)' }}></i>
             </div>
-            <DatePicker />
+            <DatePicker onChange={(event: any) => {
+              console.log(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
+              setArrivalDate(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
+            }} defaultValue={moment(new Date())} />
           </div>
         </Form.Item>
 
@@ -454,7 +664,7 @@ export default function AddProductContent(props: any) {
 
         <Form.Item >
           <div className="p-3" style={{ boxShadow: '0 0 13px 0 #b18aff', position: 'fixed', width: `${renderWidth()}`, backgroundColor: '#323259', zIndex: '2000', bottom: '0' }}>
-            <button style={{ backgroundColor: '#f0ad4e' }} className="btn text-white">
+            <button disabled={setDisable()} style={{ backgroundColor: '#f0ad4e' }} className="btn text-white">
               Add Product
             </button>
           </div>
@@ -466,45 +676,83 @@ export default function AddProductContent(props: any) {
         <Form.Item
           label={<label style={{ color: "#fff" }}>Open Graph meta tags</label>}
         >
-          <Select style={{ width: '300px' }} defaultValue="Autogenerated">
-            <Option>Autogenerated</Option>
-            <Option>Custom</Option>
+          <Select onChange={(value: any) => {
+            setOgTagType(value);
+            if (value === "0") {
+              setDisplayOgTag('none');
+            }
+            else if (value === "1") {
+              setDisplayOgTag('block');
+            }
+          }} style={{ width: '300px' }} defaultValue="Autogenerated">
+            <Option value="0">Autogenerated</Option>
+            <Option value="1">Custom</Option>
           </Select>
+          <br />
+          <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value); }} />
         </Form.Item>
 
         <Form.Item
           label={<label style={{ color: "#fff" }}>Meta description</label>}
         >
-          <Select style={{ width: '300px' }} defaultValue="Autogenerated">
-            <Option>Autogenerated</Option>
-            <Option>Custom</Option>
+          <Select onChange={(value: any) => {
+            setMetaDescriptionType(value);
+            if (value === "A") {
+              setDisplayMetaDescription('none');
+            }
+            else if (value === "C") {
+              setDisplayMetaDescription('block')
+            }
+          }} style={{ width: '300px' }} defaultValue={metaDescriptionType}>
+            <Option value="A">Autogenerated</Option>
+            <Option value="C">Custom</Option>
           </Select>
+          <br />
+          <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value); }} />
         </Form.Item>
 
         <Form.Item
           label={<label style={{ color: "#fff" }}>Meta keywords</label>}
         >
-          <input className="ant-input bg-main" style={{ width: '300px' }} />
+          <input onChange={(event: any) => {
+            setMetaKeyWord(event.target.value);
+          }} className="ant-input bg-main" style={{ width: '300px' }} />
         </Form.Item>
 
         <Form.Item
           label={<label style={{ color: "#fff" }}>Product page title</label>}
         >
-          <input className="ant-input bg-main" style={{ width: '300px' }} />
+          <input onChange={(event: any) => {
+            setProductPageTitle(event.target.value);
+          }} className="ant-input bg-main" style={{ width: '300px' }} />
         </Form.Item>
 
         <Form.Item
           name=""
           label={<label style={{ color: "#fff" }}>Add to Facebook product feed</label>}
         >
-          <Switch checkedChildren="YES" unCheckedChildren="NO" />
+          <Switch onChange={(checked: any) => {
+            if (checked === true) {
+              setFaceBookFeed(1);
+            }
+            else if (checked === false) {
+              setFaceBookFeed(0);
+            }
+          }} checkedChildren="YES" unCheckedChildren="NO" />
         </Form.Item>
 
         <Form.Item
           name=""
           label={<label style={{ color: "#fff" }}>Add to Google product feed</label>}
         >
-          <Switch checkedChildren="YES" unCheckedChildren="NO" />
+          <Switch onChange={(checked: any) => {
+            if (checked === true) {
+              setGoogleFeed(1);
+            }
+            else if (checked === false) {
+              setGoogleFeed(0);
+            }
+          }} checkedChildren="YES" unCheckedChildren="NO" />
         </Form.Item>
       </Form>
 
