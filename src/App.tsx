@@ -8,6 +8,7 @@ import LoginPage from './modules/auth/pages/LoginPage';
 import Modal from './modules/component/Modal';
 import Product from './modules/Product/Product';
 import ProductDetail from './modules/ProductDetail/ProductDetail';
+import UsetDetail from './modules/UserDetail/UsetDetail';
 import UserList from './modules/userList/UserList';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path={ROUTES.addProduct} element={<AddProduct />}/>
         <Route path={ROUTES.productDetail} element={<ProductDetail />}/>
         <Route path={ROUTES.addUser} element={<AddUser />}/>
+        <Route path={ROUTES.userDetail} element={<UsetDetail />}/>
       </Routes>
     </BrowserRouter>
   );

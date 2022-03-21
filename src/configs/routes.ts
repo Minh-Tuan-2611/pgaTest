@@ -6,4 +6,5 @@ export const ROUTES = {
     addProduct:'/addProduct',
     productDetail:'/productDetail/:id',
     addUser:'/addUser',
+    userDetail:'/userDetail/:id',
 }

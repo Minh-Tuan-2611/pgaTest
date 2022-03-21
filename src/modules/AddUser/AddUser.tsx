@@ -17,23 +17,23 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 export default function AddUser() {
-    if (Cookies.get('token')) {
-        return (
-          <Box sx={{ display: 'flex' }}>
-            <CssBaseline />
-            <Header />
-            <Menuu />
-            <div className="" style={{ width: '100%' }}>
-              <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{ backgroundColor: 'rgb(33, 33, 57)', paddingBottom: '100px' }}>
-                <DrawerHeader />
-                <AddUserContent/>
-              </Box>
-            </div>
+  if (Cookies.get('token')) {
+    return (
+      <Box sx={{ display: 'flex' }}>
+        <CssBaseline />
+        <Header />
+        <Menuu />
+        <div className="" style={{ width: '100%' }}>
+          <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{ backgroundColor: 'rgb(33, 33, 57)', paddingBottom: '10px' }}>
+            <DrawerHeader />
+            <AddUserContent />
           </Box>
-        )
-      }
-      else {
-        window.location.pathname = ROUTES.login;
-        return <div></div>
-      }
+        </div>
+      </Box>
+    )
+  }
+  else {
+    window.location.pathname = ROUTES.login;
+    return <div></div>
+  }
 }

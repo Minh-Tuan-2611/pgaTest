@@ -5,12 +5,12 @@ import moment from 'moment';
 import React, { useEffect, useState } from 'react'
 import { Spinner } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../configs/routes';
 import ButtonConfirmDeleteUser from '../ButtonConfirm/ButtonConfirmDeleteUser';
 import ButtonConfirmRemoveSelectUser from '../ButtonConfirm/ButtonConfirmRemoveSelectUser';
 
-const { Option } = Select;
+const { Option, OptGroup } = Select;
 
 const { RangePicker } = DatePicker;
 
@@ -56,9 +56,25 @@ export default function UserListContent() {
 
   let [search, setSearch] = useState('');
 
-  let [memberships,setMemberships] = useState([] as any);
+  let [memberships, setMemberships] = useState([] as any);
 
   let [status, setStatus] = useState([] as any);
+
+  let [dataType, setDataType] = useState("R");
+
+  let [state, setState] = useState('');
+
+  let [address, setAddress] = useState('');
+
+  let [phone, setPhone] = useState('');
+
+  let [dateRange, setDateRange] = useState([] as any);
+
+  let [countryList, setCountryList] = useState([] as any);
+
+  let [country, setCountry] = useState('');
+
+  let [types,setTypes] = useState([] as any);
 
   useEffect(() => {
     if (params.length === 0) {
@@ -69,23 +85,34 @@ export default function UserListContent() {
     }
   }, [params]);
 
+  const getCountryList = () => {
+    setLoading(true);
+    let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/commons/country', config);
+    promise.then((result) => {
+      if (result.data.success === true) {
+        setCountryList(result.data.data);
+        setLoading(false);
+      }
+    })
+  }
+
   const getUserList = () => {
     setLoading(true);
     let promise = axios.post('https://api.gearfocus.div4.pgtest.co/apiAdmin/users/list', {
-      address: "",
+      address: address,
       count: 25,
-      country: "",
-      date_range: [],
-      date_type: "R",
+      country: country,
+      date_range: dateRange,
+      date_type: dataType,
       memberships: memberships,
       order_by: "ASC",
       page: 1,
-      phone: "",
+      phone: phone,
       search: search,
       sort: 'vendor',
-      state: "",
+      state: state,
       status: status,
-      types: [],
+      types: types,
       tz: 7,
     }, config)
     promise.then((result) => {
@@ -114,20 +141,20 @@ export default function UserListContent() {
       setOrder('ASC');
     }
     let promise = axios.post('https://api.gearfocus.div4.pgtest.co/apiAdmin/users/list', {
-      address: "",
+      address: address,
       count: count,
-      country: "",
-      date_range: [],
-      date_type: "R",
+      country: country,
+      date_range: dateRange,
+      date_type: dataType,
       memberships: memberships,
       order_by: order,
       page: page,
-      phone: "",
+      phone: phone,
       search: search,
       sort: sort,
-      state: "",
+      state: state,
       status: status,
-      types: [],
+      types: types,
       tz: 7,
     }, config)
     promise.then((result) => {
@@ -161,6 +188,7 @@ export default function UserListContent() {
 
   useEffect(() => {
     getUserList2('vendor');
+    getCountryList();
   }, [])
 
   return (
@@ -181,7 +209,7 @@ export default function UserListContent() {
                 }} className="text-white" placeholder="Search keywords" style={{ backgroundColor: '#1b1b38', borderColor: '#13132b', padding: '8px', borderRadius: '6px' }} />
               </div>
               <div className="col-7">
-                <Select onChange={(value: any)=>{
+                <Select onChange={(value: any) => {
                   setMemberships(value);
                 }} mode="multiple" style={{ width: '100%' }} placeholder="All membership">
                   <Option value="P_4">Memberships</Option>
@@ -193,17 +221,27 @@ export default function UserListContent() {
           <div className="col-6">
             <div className="row">
               <div className="col-6">
-                <Select mode="multiple" style={{ width: '100%' }} placeholder="All User Type">
-                  <Option value="1">Memberships</Option>
-                  <Option value="2">Pending Memberships</Option>
+                <Select onChange={(value: any)=>{setTypes(value)}} mode="multiple" style={{ width: '100%' }} placeholder="All User Type">
+                  <OptGroup label="Memberships">
+                    <Option value="1">Administrator</Option>
+                    <Option value="2">Coupons management</Option>
+                    <Option value="3">Content management</Option>
+                    <Option value="4">Volume discounts management</Option>
+                    <Option value="5">Vendor</Option>
+                    <Option value="6">View order reports</Option>
+                  </OptGroup>
+                  <OptGroup label="Pending Memberships">
+                    <Option value="C">Registered Customers</Option>
+                    <Option value="N">Anonymous Customers</Option>
+                  </OptGroup>
                 </Select>
               </div>
               <div className="col-4">
-                <Select onChange={(value: any)=>{
-                  if(value === ""){
+                <Select onChange={(value: any) => {
+                  if (value === "") {
                     setStatus([])
                   }
-                  else{
+                  else {
                     setStatus([value]);
                   }
                 }} style={{ width: '100%' }} placeholder="Any Status" >
@@ -214,7 +252,7 @@ export default function UserListContent() {
                 </Select>
               </div>
               <div className="col-2">
-                <button onClick={()=>{getUserList()}} className="btn text-white" style={{ backgroundColor: '#b18aff' }}>Search</button>
+                <button onClick={() => { getUserList() }} className="btn text-white" style={{ backgroundColor: '#b18aff' }}>Search</button>
               </div>
             </div>
           </div>
@@ -225,10 +263,11 @@ export default function UserListContent() {
             <div className="row align-items-center">
               <div className="col-3 text-white">Country</div>
               <div className="col-9">
-                <Select style={{ width: '100%' }} placeholder="Any Status" >
-                  <Option value="1">Any Status</Option>
-                  <Option value="2">Memberships</Option>
-                  <Option value="3">Pending Memberships</Option>
+                <Select onChange={(value: any) => { setCountry(value) }} style={{ width: '100%' }} defaultValue="" >
+                  <Option value="">Select Country</Option>
+                  {countryList.map((country: any, index: any) => {
+                    return <Option value={country.code}>{country.country}</Option>
+                  })}
                 </Select>
               </div>
             </div>
@@ -236,7 +275,7 @@ export default function UserListContent() {
               <div className="col-3 text-white">State</div>
               <div className="col-9">
                 <Input onChange={(event: any) => {
-
+                  setState(event.target.value);
                 }} className="text-white" style={{ backgroundColor: '#1b1b38', borderColor: '#13132b', padding: '8px', borderRadius: '6px' }} />
               </div>
             </div>
@@ -244,7 +283,7 @@ export default function UserListContent() {
               <div className="col-3 text-white">Address</div>
               <div className="col-9">
                 <Input onChange={(event: any) => {
-
+                  setAddress(event.target.value);
                 }} className="text-white" style={{ backgroundColor: '#1b1b38', borderColor: '#13132b', padding: '8px', borderRadius: '6px' }} />
               </div>
             </div>
@@ -252,8 +291,12 @@ export default function UserListContent() {
               <div className="col-3 text-white">Phone</div>
               <div className="col-9">
                 <Input onChange={(event: any) => {
-
-                }} className="text-white" style={{ backgroundColor: '#1b1b38', borderColor: '#13132b', padding: '8px', borderRadius: '6px' }} />
+                  const { value } = event.target;
+                  const reg = /^-?\d*(\.\d*)?$/;
+                  if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+                    setPhone(value);
+                  }
+                }} value={phone} className="text-white" style={{ backgroundColor: '#1b1b38', borderColor: '#13132b', padding: '8px', borderRadius: '6px' }} />
               </div>
             </div>
           </div>
@@ -263,14 +306,16 @@ export default function UserListContent() {
                 User Activity
               </div>
               <div className="col-6">
-                <Radio.Group>
-                  <Radio style={{ color: '#fff' }} value={1}>Register</Radio>
-                  <Radio style={{ color: '#fff' }} value={2}>Last logged in</Radio>
+                <Radio.Group onChange={(event: any) => { setDataType(event.target.value) }} value={dataType}>
+                  <Radio style={{ color: '#fff' }} value="R">Register</Radio>
+                  <Radio style={{ color: '#fff' }} value="L">Last logged in</Radio>
                 </Radio.Group>
               </div>
             </div>
             <div className="row mt-4">
-              <RangePicker style={{ marginLeft: '16px' }} />
+              <RangePicker onChange={(date, dateString) => {
+                setDateRange(dateString);
+              }} style={{ marginLeft: '16px' }} />
             </div>
           </div>
         </div>
@@ -357,7 +402,7 @@ export default function UserListContent() {
                     }
                   }
                 }} /></td>
-                <td>{user.vendor.substr(0, 12)}...</td>
+                <td><NavLink to={`/userDetail/${user.profile_id}`}>{user.vendor.substr(0, 12)}...</NavLink></td>
                 <td>{user.firstName} {user.lastName}</td>
                 <td>{user.access_level}</td>
                 <td>{user.product}</td>

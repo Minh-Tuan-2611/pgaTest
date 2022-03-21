@@ -24,7 +24,7 @@ export default function UsetDetail() {
                 <Header />
                 <Menuu />
                 <div className="" style={{ width: '100%' }}>
-                    <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{ backgroundColor: 'rgb(33, 33, 57)', paddingBottom: '100px' }}>
+                    <Box component="main" sx={{ flexGrow: 1, p: 3 }} style={{ backgroundColor: 'rgb(33, 33, 57)', paddingBottom: '10px' }}>
                         <DrawerHeader />
                         <UserDetailContent/>
                     </Box>

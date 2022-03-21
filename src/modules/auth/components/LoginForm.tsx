@@ -59,7 +59,8 @@ export default function LoginForm(props: any) {
                             message: 'Please input your password!'
                         },
                         {
-                            min: 6, message: 'Username must be minimum 6 characters.'
+                            min: 6, 
+                            message: 'Password must be minimum 6 characters.'
                         },
                     ]}
                 >

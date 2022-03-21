@@ -59,6 +59,7 @@ export default function ProductDetailContent(props: any) {
 
     let [product, setProduct] = useState({ name: '', vendor_id: '', sale_price_type: '', categories: [{ name: '' }], id: '' });
     let [loading, setLoading] = useState(false);
+    let [arrivalDate, setArrivalDate] = useState(Date.now().toString());
 
     const getProductDetail = () => {
         setLoading(true);
@@ -226,8 +227,6 @@ export default function ProductDetailContent(props: any) {
 
     let [sku, setSku] = useState('');
 
-    let [arrivalDate, setArrivalDate] = useState('');
-
     let [description, setDescription] = useState('');
 
     let [faceBookFeed, setFaceBookFeed] = useState(0);
@@ -333,7 +332,12 @@ export default function ProductDetailContent(props: any) {
         getProductDetail();
     }, [])
 
+    // useEffect(() => {
+    //     setDescription(editorRef.current.getContent());
+    // },[editorRef])
+
     const onFinish = () => {
+        setDescription(editorRef.current.getContent());
         if (editorRef.current.getContent() !== null && fileList.length > 0) {
             setLoading(true);
             let img = [];
@@ -347,7 +351,7 @@ export default function ProductDetailContent(props: any) {
                 "brand_id": brand,
                 "condition_id": condition,
                 "categories": category,
-                "description": editorRef.current.getContent(),
+                "description": description,
                 "enabled": enabled,
                 "memberships": membership,
                 "shipping_to_zones": [{ id: "1", price: continentalUS }],
@@ -397,8 +401,8 @@ export default function ProductDetailContent(props: any) {
                             })
                             promise.then((result) => {
                                 if (result.data.success === true) {
-                                    navigate(`/productDetail/${id}`);
-                                    // getProductDetail();
+                                    
+                                    getProductDetail();
                                     setLoading(false);
                                     Swal.fire(
                                         'Update Product Success !',
@@ -418,7 +422,8 @@ export default function ProductDetailContent(props: any) {
                         }
                     }
                     else if (fileImg.length === 0) {
-                        navigate(`/productDetail/${id}`);
+                        
+                        getProductDetail();
                         setLoading(false);
                         Swal.fire(
                             'Update Product Success !',
@@ -687,9 +692,8 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row" style={{ display: `${display}`, marginLeft: '2px' }}>
                             <Select onChange={(value: any) => {
-
                                 setPriceSaleType(value);
-                            }} placeholder={priceSaleType} style={{ width: '50px' }}>
+                            }} defaultValue={priceSaleType} style={{ width: '50px' }}>
                                 <Option value="$">$</Option>
                                 <Option value="%">%</Option>
                             </Select>
@@ -713,8 +717,8 @@ export default function ProductDetailContent(props: any) {
                             <div className="mr-2" style={{ padding: '5px 20px 5px 20px', backgroundColor: 'rgba(180,180,219,.24)', borderRadius: '5px' }}>
                                 <i className="fa-solid fa-calendar" style={{ color: 'rgba(180,180,219,.48)' }}></i>
                             </div>
-                            <DatePicker onChange={(event: any) => {
-                                setArrivalDate(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
+                            <DatePicker onChange={(date:any,dateString:any) => {
+                                setArrivalDate(dateString);
                             }} defaultValue={moment(parseInt(arrivalDate) * 1000)} />
                         </div>
                     </Form.Item>
