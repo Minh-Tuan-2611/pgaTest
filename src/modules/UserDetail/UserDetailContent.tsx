@@ -139,6 +139,7 @@ export default function UserDetailContent() {
 
     promise.then((result) => {
       if (result.data.success === true) {
+        setLeave(false);
         setLoading(false);
         Swal.fire(
           'Update User Success !',

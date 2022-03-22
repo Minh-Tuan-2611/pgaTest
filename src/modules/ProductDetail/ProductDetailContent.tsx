@@ -143,28 +143,12 @@ export default function ProductDetailContent(props: any) {
                     arr.push(result.data.data.categories[i].category_id);
                 }
                 setCategory(arr);
-                let id = result.data.data.vendor_id;
+
+                setBrand(result.data.data.brand_id);
+
+                setVendor(result.data.data.vendor_id)
 
                 setLoading(false);
-                let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/vendors/list', config);
-                promise.then((results) => {
-                    let index = results.data.data.findIndex((item: any) => item.id === id);
-                    if (index !== -1) {
-                        setVendor(results.data.data[index].name);
-                    }
-                    if (index === -1) {
-                        setVendor('Administrator')
-                    }
-                })
-
-                let id2 = result.data.data.brand_id
-                let promise2 = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/brands/list', config);
-                promise2.then((results) => {
-                    let index = results.data.data.findIndex((item: any) => item.id === id2);
-                    if (index !== -1) {
-                        setBrand(results.data.data[index].name);
-                    }
-                })
 
             }
         })
@@ -430,6 +414,7 @@ export default function ProductDetailContent(props: any) {
 
                                     getProductDetail();
                                     setLoading(false);
+                                    setLeave(false);
                                     Swal.fire(
                                         'Update Product Success !',
                                         '',
@@ -450,6 +435,7 @@ export default function ProductDetailContent(props: any) {
                     else if (fileImg.length === 0) {
 
                         getProductDetail();
+                        setLeave(false);
                         setLoading(false);
                         Swal.fire(
                             'Update Product Success !',
@@ -491,16 +477,16 @@ export default function ProductDetailContent(props: any) {
                 <div className="row">
                     {leave === false ? <button onClick={() => {
                         navigate(ROUTES.product);
-                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>:''}
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button> : ''}
                     {leave === true ? <button onClick={() => {
                         dispatch({
                             type: 'change_modal',
                             title: 'Confirm Leave Page',
                             content: 'Do you want to leave page ?',
-                            button: <ButtonConfirmLeaveAddProduct/>
-                          })
-                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button>:''}
-                    
+                            button: <ButtonConfirmLeaveAddProduct />
+                        })
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button> : ''}
+
                 </div>
                 <h3 className="mt-3 mb-3 text-white">{product.name}</h3>
                 <Form
@@ -523,10 +509,11 @@ export default function ProductDetailContent(props: any) {
                                 option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                             }
                             style={{ width: '660px' }}
-                            placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{vendor}</p>}
+                            defaultValue={parseInt(vendor)}
                             onChange={(value: any) => {
                                 setLeave(true);
                                 setVendor(value);
+                                console.log(value)
                             }}
                         >
                             {vendorList.map((vendor: any, index: any) => {
@@ -560,14 +547,16 @@ export default function ProductDetailContent(props: any) {
                         name="brand"
                         label={<label style={{ color: "#fff" }}>Brand<span className="text-danger">*</span></label>}
                     >
-                        <Select onChange={(value: any) => {
-                            setLeave(true);
-                            setBrand(value);
-                        }} style={{ width: '660px' }} placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{brand}</p>}>
-                            {brandList.map((brand: any, index: any) => {
-                                return <Option key={index} value={brand.id}>{brand.name}</Option>
-                            })}
-                        </Select>
+                        <div>
+                            <Select onChange={(value: any) => {
+                                setLeave(true);
+                                setBrand(value);
+                            }} style={{ width: '660px' }} defaultValue={brand}>
+                                {brandList.map((brand: any, index: any) => {
+                                    return <Option key={index} value={brand.id}>{brand.name}</Option>
+                                })}
+                            </Select>
+                        </div>
                     </Form.Item>
 
                     <Form.Item
@@ -577,7 +566,7 @@ export default function ProductDetailContent(props: any) {
                         <Select onChange={(value: any) => {
                             setLeave(true);
                             setCondition(value);
-                        }} style={{ width: '660px' }} placeholder="select condition">
+                        }} style={{ width: '660px' }} placeholder="select condition" defaultValue={condition}>
                             <Option value="262">None</Option>
                             <Option value="292">Used</Option>
                         </Select>
@@ -895,7 +884,7 @@ export default function ProductDetailContent(props: any) {
                             <Option value="1">Custom</Option>
                         </Select>
                         <br />
-                        <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value);setLeave(true); }} />
+                        <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value); setLeave(true); }} />
                     </Form.Item>
 
                     <Form.Item
@@ -915,7 +904,7 @@ export default function ProductDetailContent(props: any) {
                             <Option value="C">Custom</Option>
                         </Select>
                         <br />
-                        <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value);setLeave(true); }} />
+                        <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value); setLeave(true); }} />
                     </Form.Item>
 
                     <Form.Item
