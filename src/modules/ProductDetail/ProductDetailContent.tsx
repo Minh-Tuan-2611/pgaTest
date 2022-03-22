@@ -297,10 +297,10 @@ export default function ProductDetailContent(props: any) {
     );
 
     const setDisable = () => {
-        if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
+        if (vendor.trim() !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
             return false;
         }
-        else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
+        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
             return true;
         }
     }
@@ -348,120 +348,119 @@ export default function ProductDetailContent(props: any) {
     }, [])
 
     const onFinish = () => {
-        if (editorRef.current.getContent() !== null && fileList.length > 0) {
-            setLoading(true);
-            let img = [];
-            for (var i = 0; i < fileImg.length; i++) {
-                img.push(fileImg[i].name);
-            }
-            let bodyFormData = new FormData();
-            bodyFormData.append('productDetail', JSON.stringify({
-                "vendor_id": vendor,
-                "name": productTitle,
-                "brand_id": brand,
-                "condition_id": condition,
-                "categories": category,
-                "description": description,
-                "enabled": enabled,
-                "memberships": membership,
-                "shipping_to_zones": [{ id: "1", price: continentalUS }],
-                "tax_exempt": taxExempt,
-                "price": price,
-                "sale_price_type": priceSaleType,
-                "arrival_date": moment(arrivalDate.toLocaleDateString()).format('YYYY-MM-DD'),
-                "inventory_tracking": 0,
-                "quantity": stock,
-                "sku": sku,
-                "participate_sale": 0,
-                "sale_price": priceSale,
-                "og_tags_type": ogTagType,
-                "og_tags": ogTag,
-                "meta_desc_type": metaDescriptionType,
-                "meta_description": metaDescription,
-                "meta_keywords": metaKeyWord,
-                "product_page_title": productPageTitle,
-                "facebook_marketing_enabled": faceBookFeed,
-                "google_feed_enabled": googleFeed,
-                "imagesOrder": img,
-                "id": product.id,
-                "deleted_images": fileImgDelete,
-            }));
-            let promise = axios({
-                method: "post",
-                url: "https://api.gearfocus.div4.pgtest.co/apiAdmin/products/create",
-                data: bodyFormData,
-                headers: config.headers,
-            })
+        setLoading(true);
+        let img = [];
+        for (var i = 0; i < fileImg.length; i++) {
+            img.push(fileImg[i].name);
+        }
+        let bodyFormData = new FormData();
+        bodyFormData.append('productDetail', JSON.stringify({
+            "vendor_id": vendor,
+            "name": productTitle,
+            "brand_id": brand,
+            "condition_id": condition,
+            "categories": category,
+            "description": description,
+            "enabled": enabled,
+            "memberships": membership,
+            "shipping_to_zones": [{ id: "1", price: continentalUS }],
+            "tax_exempt": taxExempt,
+            "price": price,
+            "sale_price_type": priceSaleType,
+            "arrival_date": moment(arrivalDate.toLocaleDateString()).format('YYYY-MM-DD'),
+            "inventory_tracking": 0,
+            "quantity": stock,
+            "sku": sku,
+            "participate_sale": 0,
+            "sale_price": priceSale,
+            "og_tags_type": ogTagType,
+            "og_tags": ogTag,
+            "meta_desc_type": metaDescriptionType,
+            "meta_description": metaDescription,
+            "meta_keywords": metaKeyWord,
+            "product_page_title": productPageTitle,
+            "facebook_marketing_enabled": faceBookFeed,
+            "google_feed_enabled": googleFeed,
+            "imagesOrder": img,
+            "id": product.id,
+            "deleted_images": fileImgDelete,
+        }));
+        let promise = axios({
+            method: "post",
+            url: "https://api.gearfocus.div4.pgtest.co/apiAdmin/products/create",
+            data: bodyFormData,
+            headers: config.headers,
+        })
 
-            promise.then((result) => {
-                console.log(result);
-                if (result.data.success === true) {
-                    if (fileImg.length > 0) {
-                        for (let i = 0; i < fileImg.length; i++) {
-                            let id = result.data.data;
-                            let bodyFormData = new FormData();
-                            bodyFormData.append('productId', id);
-                            bodyFormData.append('order', JSON.stringify(0));
-                            bodyFormData.append('images[]', fileImg[i].originFileObj);
-                            let promise = axios({
-                                method: 'post',
-                                url: 'https://api.gearfocus.div4.pgtest.co/api/products/upload-image',
-                                data: bodyFormData,
-                                headers: config.headers
-                            })
-                            promise.then((result) => {
-                                if (result.data.success === true) {
+        promise.then((result) => {
+            console.log(result);
+            if (result.data.success === true) {
+                if (fileImg.length > 0) {
+                    for (let i = 0; i < fileImg.length; i++) {
+                        let id = result.data.data;
+                        let bodyFormData = new FormData();
+                        bodyFormData.append('productId', id);
+                        bodyFormData.append('order', JSON.stringify(0));
+                        bodyFormData.append('images[]', fileImg[i].originFileObj);
+                        let promise = axios({
+                            method: 'post',
+                            url: 'https://api.gearfocus.div4.pgtest.co/api/products/upload-image',
+                            data: bodyFormData,
+                            headers: config.headers
+                        })
+                        promise.then((result) => {
+                            if (result.data.success === true) {
 
-                                    getProductDetail();
-                                    setLoading(false);
-                                    setLeave(false);
-                                    Swal.fire(
-                                        'Update Product Success !',
-                                        '',
-                                        'success'
-                                    )
-                                }
-                                else if (result.data.success === false) {
-                                    setLoading(false);
-                                    Swal.fire(
-                                        `${result.data.errors}`,
-                                        '',
-                                        'error'
-                                    )
-                                }
-                            })
-                        }
-                    }
-                    else if (fileImg.length === 0) {
-
-                        getProductDetail();
-                        setLeave(false);
-                        setLoading(false);
-                        Swal.fire(
-                            'Update Product Success !',
-                            '',
-                            'success'
-                        )
+                                getProductDetail();
+                                setLoading(false);
+                                setLeave(false);
+                                Swal.fire(
+                                    'Update Product Success !',
+                                    '',
+                                    'success'
+                                )
+                            }
+                            else if (result.data.success === false) {
+                                setLoading(false);
+                                Swal.fire(
+                                    `${result.data.errors}`,
+                                    '',
+                                    'error'
+                                )
+                            }
+                        })
                     }
                 }
-                else if (result.data.success === false) {
+                else if (fileImg.length === 0) {
+
+                    getProductDetail();
+                    setLeave(false);
                     setLoading(false);
                     Swal.fire(
-                        `${result.data.errors}`,
+                        'Update Product Success !',
                         '',
-                        'error'
+                        'success'
                     )
                 }
-            })
-
-            promise.catch((error) => {
+            }
+            else if (result.data.success === false) {
+                setLoading(false);
                 Swal.fire(
-                    'Create Product Fail !',
+                    `${result.data.errors}`,
                     '',
                     'error'
                 )
-            })
-        }
+            }
+        })
+
+        promise.catch((error) => {
+            Swal.fire(
+                'Create Product Fail !',
+                '',
+                'error'
+            )
+        })
+
     };
 
     if (loading === true) {

@@ -72,10 +72,10 @@ export default function AddUserContent() {
   }
 
   const setDisable = () => {
-    if (firstName !== '' && lastName !== '' && email !== '' && password !== '' && passwordConfirm !== '') {
+    if (firstName.trim() !== '' && lastName.trim() !== '' && email.trim() !== '' && password.trim() !== '' && passwordConfirm.trim() !== '') {
       return false
     }
-    else if (firstName === '' || lastName === '' || email === '' || password === '' || passwordConfirm === '') {
+    else if (firstName.trim() === '' || lastName.trim() === '' || email.trim() === '' || password.trim() === '' || passwordConfirm.trim() === '') {
       return true
     }
   }

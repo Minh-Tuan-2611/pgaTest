@@ -219,10 +219,10 @@ export default function AddProductContent(props: any) {
   }, [])
 
   const setDisable = () => {
-    if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
+    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
       return false;
     }
-    else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
+    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
       return true;
     }
   }

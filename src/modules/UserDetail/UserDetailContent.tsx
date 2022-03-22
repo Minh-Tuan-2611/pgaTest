@@ -169,10 +169,10 @@ export default function UserDetailContent() {
   }
 
   const setDisable = () => {
-    if (firstName !== '' && lastName !== '' && email !== '') {
+    if (firstName.trim() !== '' && lastName.trim() !== '' && email.trim() !== '') {
       return false
     }
-    else if (firstName === '' || lastName === '' || email === '') {
+    else if (firstName.trim() === '' || lastName.trim() === '' || email.trim() === '') {
       return true
     }
   }
