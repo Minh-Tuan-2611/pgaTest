@@ -17,9 +17,10 @@ import Cookies from 'js-cookie';
 import TextArea from 'antd/lib/input/TextArea';
 import { Spinner } from 'react-bootstrap';
 import { Editor } from '@tinymce/tinymce-react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import Swal from 'sweetalert2';
+import ButtonConfirmLeaveAddProduct from '../ButtonConfirm/ButtonConfirmLeaveAddProduct';
 
 const formItemLayout = {
   labelCol: {
@@ -34,7 +35,9 @@ const { Option } = Select;
 
 export default function AddProductContent(props: any) {
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
 
   let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
 
@@ -51,6 +54,7 @@ export default function AddProductContent(props: any) {
     <Menu>
       <Menu.Item key="0">
         <Checkbox onChange={(event: any) => {
+          setLeave(true);
           if (event.target.checked === true) {
             setMembership([4])
             setGeneral('General');
@@ -85,6 +89,7 @@ export default function AddProductContent(props: any) {
   let [countryList, setCountryList] = useState([]);
 
   const onChange = (result: any) => {
+    setLeave(true);
     console.log(result);
     setFileList(result.fileList);
   };
@@ -103,6 +108,8 @@ export default function AddProductContent(props: any) {
     const imgWindow = window.open(src) as any;
     imgWindow.document.write(image.outerHTML);
   };
+
+  let [leave, setLeave] = useState(false);
 
   let [loading, setLoading] = useState(false);
 
@@ -336,9 +343,17 @@ export default function AddProductContent(props: any) {
         </div> : ''}
       </div>
       <div className="row">
-        <button onClick={() => {
-          navigate(ROUTES.product);
-        }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>
+      {leave === false ? <button onClick={() => {
+                        navigate(ROUTES.product);
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>:''}
+                    {leave === true ? <button onClick={() => {
+                        dispatch({
+                            type: 'change_modal',
+                            title: 'Confirm Leave Page',
+                            content: 'Do you want to leave page ?',
+                            button: <ButtonConfirmLeaveAddProduct/>
+                          })
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button>:''}
       </div>
 
       <Form
@@ -369,6 +384,7 @@ export default function AddProductContent(props: any) {
             style={{ width: '660px' }}
             placeholder="select vendor name"
             onChange={(value: any) => {
+              setLeave(true);
               setVendor(value);
             }}
           >
@@ -389,6 +405,7 @@ export default function AddProductContent(props: any) {
           ]}
         >
           <input onChange={(event: any) => {
+            setLeave(true);
             setProductTitle(event.target.value);
           }} className="ant-input bg-main" style={{ width: '660px' }} />
         </Form.Item>
@@ -405,6 +422,7 @@ export default function AddProductContent(props: any) {
           ]}
         >
           <Select onChange={(value: any) => {
+            setLeave(true);
             setBrand(value);
           }} style={{ width: '660px' }} placeholder="select brand name">
             {brandList.map((brand: any, index: any) => {
@@ -419,6 +437,7 @@ export default function AddProductContent(props: any) {
         // rules={[{ required: true, message: 'Please select condition !' }]}
         >
           <Select onChange={(value: any) => {
+            setLeave(true);
             setCondition(value);
           }} defaultValue={condition} style={{ width: '660px' }} placeholder="select condition">
             <Option value="262">None</Option>
@@ -432,6 +451,7 @@ export default function AddProductContent(props: any) {
           rules={[{ required: true, message: 'Please input sku !' }]}
         >
           <input onChange={(event: any) => {
+            setLeave(true);
             setSku(event.target.value);
           }} className="ant-input bg-main" style={{ width: '660px' }} />
 
@@ -440,7 +460,6 @@ export default function AddProductContent(props: any) {
         <Form.Item
           name="images"
           label={<label style={{ color: "#fff" }}>Images</label>}
-        // rules={[{ required: true, message: 'Please input images !' }]}
         >
 
           <Upload
@@ -462,6 +481,7 @@ export default function AddProductContent(props: any) {
           rules={[{ required: true, message: 'Please select category !' }]}
         >
           <Select onChange={(value: any) => {
+            setLeave(true);
             setCategory(value);
           }} mode="multiple" style={{ width: '660px' }} placeholder="Type categories name to select">
             {categoryList.map((category: any, index: any) => {
@@ -479,6 +499,7 @@ export default function AddProductContent(props: any) {
             <Editor
               onInit={(evt, editor) => editorRef.current = editor}
               initialValue=""
+              onEditorChange={(value: any)=>{setLeave(true);}}
               init={{
                 height: 200,
                 marginLeft: '16px',
@@ -507,6 +528,7 @@ export default function AddProductContent(props: any) {
 
           </div>
           <Switch onChange={(checked: any) => {
+            setLeave(true);
             if (checked === true) {
               setEnabled(1);
             }
@@ -577,6 +599,7 @@ export default function AddProductContent(props: any) {
         >
           <div className="row" style={{ display: `${display}` }}>
             <Select className="ml-3" onChange={(value: any) => {
+              setLeave(true);
               setPriceSaleType(value);
             }} defaultValue={priceSaleType} style={{ width: '50px' }}>
               <Option value="$">$</Option>
@@ -584,6 +607,7 @@ export default function AddProductContent(props: any) {
 
             </Select>
             <input className="ant-input bg-main" onChange={(event: any) => {
+              setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -603,6 +627,7 @@ export default function AddProductContent(props: any) {
               <i className="fa-solid fa-calendar" style={{ color: 'rgba(180,180,219,.48)' }}></i>
             </div>
             <DatePicker onChange={(event: any) => {
+              setLeave(true);
               console.log(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
               setArrivalDate(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
             }} defaultValue={moment(new Date())} />
@@ -616,6 +641,7 @@ export default function AddProductContent(props: any) {
         >
           <div className="row align-items-center">
             <input className="ant-input bg-main" onChange={(event: any) => {
+              setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -642,6 +668,7 @@ export default function AddProductContent(props: any) {
         >
           <div className="row align-items-center">
             <input className="ant-input bg-main" onChange={(event: any) => {
+              setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
               if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -655,7 +682,9 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Add Shipping Location</label>}
           name="location"
         >
-          <Select style={{ width: '300px' }} placeholder="Select new zone">
+          <Select onChange={()=>{
+            setLeave(true);
+          }} style={{ width: '300px' }} placeholder="Select new zone">
             {countryList.map((country: any, index: any) => {
               return <Option key={index}>{country.country}</Option>
             })}
@@ -689,13 +718,14 @@ export default function AddProductContent(props: any) {
             <Option value="1">Custom</Option>
           </Select>
           <br />
-          <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value); }} />
+          <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value);setLeave(true); }} />
         </Form.Item>
 
         <Form.Item
           label={<label style={{ color: "#fff" }}>Meta description</label>}
         >
           <Select onChange={(value: any) => {
+            setLeave(true);
             setMetaDescriptionType(value);
             if (value === "A") {
               setDisplayMetaDescription('none');
@@ -708,13 +738,14 @@ export default function AddProductContent(props: any) {
             <Option value="C">Custom</Option>
           </Select>
           <br />
-          <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value); }} />
+          <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value);setLeave(true); }} />
         </Form.Item>
 
         <Form.Item
           label={<label style={{ color: "#fff" }}>Meta keywords</label>}
         >
           <input onChange={(event: any) => {
+            setLeave(true);
             setMetaKeyWord(event.target.value);
           }} className="ant-input bg-main" style={{ width: '300px' }} />
         </Form.Item>
@@ -723,6 +754,7 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Product page title</label>}
         >
           <input onChange={(event: any) => {
+            setLeave(true);
             setProductPageTitle(event.target.value);
           }} className="ant-input bg-main" style={{ width: '300px' }} />
         </Form.Item>
@@ -732,6 +764,7 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Add to Facebook product feed</label>}
         >
           <Switch onChange={(checked: any) => {
+            setLeave(true);
             if (checked === true) {
               setFaceBookFeed(1);
             }
@@ -746,6 +779,7 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Add to Google product feed</label>}
         >
           <Switch onChange={(checked: any) => {
+            setLeave(true);
             if (checked === true) {
               setGoogleFeed(1);
             }

@@ -6,19 +6,22 @@ import { ROUTES } from '../../configs/routes';
 import { Spinner } from 'react-bootstrap';
 import {
     Checkbox,
-    DatePicker,
     Dropdown,
     Form,
     Menu,
     Select,
     Switch,
 } from 'antd';
+import 'react-date-range/dist/styles.css'; // main style file
+import 'react-date-range/dist/theme/default.css';
+import { Calendar } from 'react-date-range';
 import { Upload } from 'antd';
 import moment from 'moment';
 import { Editor } from '@tinymce/tinymce-react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import TextArea from 'antd/lib/input/TextArea';
 import Swal from 'sweetalert2';
+import ButtonConfirmLeaveAddProduct from '../ButtonConfirm/ButtonConfirmLeaveAddProduct';
 
 
 const formItemLayout = {
@@ -45,6 +48,8 @@ export default function ProductDetailContent(props: any) {
         }
     }
 
+    const dispatch = useDispatch();
+
     const editorRef = useRef(null as any);
 
     const [form] = Form.useForm();
@@ -59,7 +64,8 @@ export default function ProductDetailContent(props: any) {
 
     let [product, setProduct] = useState({ name: '', vendor_id: '', sale_price_type: '', categories: [{ name: '' }], id: '' });
     let [loading, setLoading] = useState(false);
-    let [arrivalDate, setArrivalDate] = useState(Date.now().toString());
+    let [arrivalDate, setArrivalDate] = useState(Date.now() as any);
+    let [leave, setLeave] = useState(false);
 
     const getProductDetail = () => {
         setLoading(true);
@@ -77,7 +83,7 @@ export default function ProductDetailContent(props: any) {
                 setPriceSaleType(result.data.data.sale_price_type);
                 setSku(result.data.data.sku);
                 setProduct(result.data.data);
-                setArrivalDate(result.data.data.arrival_date);
+                setArrivalDate(new Date(parseInt(result.data.data.arrival_date) * 1000));
                 setDescription(result.data.data.description);
                 setMetaDescription(result.data.data.meta_description);
                 setOgTag(result.data.data.og_tags);
@@ -181,11 +187,19 @@ export default function ProductDetailContent(props: any) {
     let [fileImgDelete, setFileImgDelete] = useState([] as any);
 
     const onChange = (result: any) => {
+        setLeave(true);
         if (result.file.status === 'removed') {
             setFileImgDelete([...fileImgDelete, result.file.uid]);
         }
         if (result.file.status === 'done') {
             setFileImg([...fileImg, result.file]);
+        }
+        console.log(result.fileList);
+        if (result.fileList.length === 0) {
+            setImgError('Img is required !');
+        }
+        else if (result.fileList.length > 0) {
+            setImgError('');
         }
         setFileList(result.fileList);
     };
@@ -257,10 +271,27 @@ export default function ProductDetailContent(props: any) {
 
     let [membership, setMembership] = useState([] as Array<number>);
 
+    let [productTitleError, setProductTitleError] = useState('');
+
+    let [skuError, setSkuError] = useState('');
+
+    let [imgError, setImgError] = useState('');
+
+    let [categoryError, setCategoryError] = useState('');
+
+    let [descriptionError, setDescriptionError] = useState('');
+
+    let [priceError, setPriceError] = useState('');
+
+    let [quantityError, setQuantityError] = useState('');
+
+    let [continentalUSError, setContinentalUSError] = useState('');
+
     const renderCheckbox = () => {
 
 
         return <Checkbox defaultChecked={membership.length > 0} onChange={(event: any) => {
+            setLeave(true);
             if (event.target.checked === true) {
                 setMembership([4])
                 setGeneral('General');
@@ -282,10 +313,10 @@ export default function ProductDetailContent(props: any) {
     );
 
     const setDisable = () => {
-        if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList !== [] && category !== [] && price !== '' && stock !== '' && continentalUS !== '') {
+        if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
             return false;
         }
-        else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList === [] || category === [] || price === '' || stock === '' || continentalUS === '') {
+        else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
             return true;
         }
     }
@@ -310,7 +341,7 @@ export default function ProductDetailContent(props: any) {
 
     const getCategoryList = () => {
         setLoading(true);
-        let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list');
+        let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list', config);
         promise.then((results) => {
             setCategoryList(results.data.data);
         })
@@ -332,12 +363,7 @@ export default function ProductDetailContent(props: any) {
         getProductDetail();
     }, [])
 
-    // useEffect(() => {
-    //     setDescription(editorRef.current.getContent());
-    // },[editorRef])
-
     const onFinish = () => {
-        setDescription(editorRef.current.getContent());
         if (editorRef.current.getContent() !== null && fileList.length > 0) {
             setLoading(true);
             let img = [];
@@ -358,7 +384,7 @@ export default function ProductDetailContent(props: any) {
                 "tax_exempt": taxExempt,
                 "price": price,
                 "sale_price_type": priceSaleType,
-                "arrival_date": arrivalDate,
+                "arrival_date": moment(arrivalDate.toLocaleDateString()).format('YYYY-MM-DD'),
                 "inventory_tracking": 0,
                 "quantity": stock,
                 "sku": sku,
@@ -401,7 +427,7 @@ export default function ProductDetailContent(props: any) {
                             })
                             promise.then((result) => {
                                 if (result.data.success === true) {
-                                    
+
                                     getProductDetail();
                                     setLoading(false);
                                     Swal.fire(
@@ -422,7 +448,7 @@ export default function ProductDetailContent(props: any) {
                         }
                     }
                     else if (fileImg.length === 0) {
-                        
+
                         getProductDetail();
                         setLoading(false);
                         Swal.fire(
@@ -463,9 +489,18 @@ export default function ProductDetailContent(props: any) {
         return (
             <div>
                 <div className="row">
-                    <button onClick={() => {
+                    {leave === false ? <button onClick={() => {
                         navigate(ROUTES.product);
-                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>:''}
+                    {leave === true ? <button onClick={() => {
+                        dispatch({
+                            type: 'change_modal',
+                            title: 'Confirm Leave Page',
+                            content: 'Do you want to leave page ?',
+                            button: <ButtonConfirmLeaveAddProduct/>
+                          })
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button>:''}
+                    
                 </div>
                 <h3 className="mt-3 mb-3 text-white">{product.name}</h3>
                 <Form
@@ -490,7 +525,7 @@ export default function ProductDetailContent(props: any) {
                             style={{ width: '660px' }}
                             placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{vendor}</p>}
                             onChange={(value: any) => {
-
+                                setLeave(true);
                                 setVendor(value);
                             }}
                         >
@@ -503,23 +538,30 @@ export default function ProductDetailContent(props: any) {
 
                     <Form.Item
                         name="Product title"
-                        label={<label style={{ color: "#fff" }}>Product title</label>}
+                        label={<label style={{ color: "#fff" }}>Product title<span className="text-danger">*</span></label>}
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
-
+                                setLeave(true);
+                                if (event.target.value.trim() === '') {
+                                    setProductTitleError('Product title is required !');
+                                }
+                                else {
+                                    setProductTitleError('')
+                                }
                                 setProductTitle(event.target.value);
                             }} value={productTitle} className="ant-input bg-main ml-3" style={{ width: '658px' }} />
                         </div>
+                        <p className="text-danger">{productTitleError}</p>
                     </Form.Item>
 
                     <Form.Item
                         style={{ color: '#fff' }}
                         name="brand"
-                        label={<label style={{ color: "#fff" }}>Brand</label>}
+                        label={<label style={{ color: "#fff" }}>Brand<span className="text-danger">*</span></label>}
                     >
                         <Select onChange={(value: any) => {
-
+                            setLeave(true);
                             setBrand(value);
                         }} style={{ width: '660px' }} placeholder={<p style={{ color: '#fff', marginTop: '43px' }}>{brand}</p>}>
                             {brandList.map((brand: any, index: any) => {
@@ -533,6 +575,7 @@ export default function ProductDetailContent(props: any) {
                         label={<label style={{ color: "#fff" }}>Condition</label>}
                     >
                         <Select onChange={(value: any) => {
+                            setLeave(true);
                             setCondition(value);
                         }} style={{ width: '660px' }} placeholder="select condition">
                             <Option value="262">None</Option>
@@ -542,20 +585,28 @@ export default function ProductDetailContent(props: any) {
 
                     <Form.Item
                         name="sku"
-                        label={<label style={{ color: "#fff" }}>SKU</label>}
+                        label={<label style={{ color: "#fff" }}>SKU<span className="text-danger">*</span></label>}
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
-
+                                setLeave(true);
+                                if (event.target.value.trim() === '') {
+                                    setSkuError('SKU is required !');
+                                }
+                                else {
+                                    setSkuError('');
+                                }
                                 setSku(event.target.value);
                             }} value={sku} className="ant-input bg-main ml-3" style={{ width: '660px' }} />
+                            <br />
                         </div>
+                        <p className="text-danger">{skuError}</p>
 
                     </Form.Item>
 
                     <Form.Item
                         name="images"
-                        label={<label style={{ color: "#fff" }}>Images</label>}
+                        label={<label style={{ color: "#fff" }}>Images<span className="text-danger">*</span></label>}
                     >
 
 
@@ -568,30 +619,49 @@ export default function ProductDetailContent(props: any) {
                         >
                             <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
                         </Upload>
+                        <p className="text-danger">{imgError}</p>
 
                     </Form.Item>
 
                     <Form.Item
                         name="category"
-                        label={<label style={{ color: "#fff" }}>Category</label>}
+                        label={<label style={{ color: "#fff" }}>Category<span className="text-danger">*</span></label>}
                     >
                         <Select onChange={(value: any) => {
+                            setLeave(true);
                             setCategory(value);
+                            if (value.length > 0) {
+                                setCategoryError('')
+                            }
+                            else if (value.length === 0) {
+                                setCategoryError('Category is required !')
+                            }
                         }} mode="multiple" defaultValue={category} style={{ width: '660px' }} placeholder="Type categories name to select">
                             {categoryList.map((category: any, index: any) => {
                                 return <Option key={index} value={category.id}>{category.name}</Option>
                             })}
                         </Select>
+                        <p className="text-danger">{categoryError}</p>
                     </Form.Item>
 
                     <Form.Item
                         name="description"
-                        label={<label style={{ color: "#fff" }}>Description</label>}
+                        label={<label style={{ color: "#fff" }}>Description<span className="text-danger">*</span></label>}
                     >
                         <div className="row">
                             <Editor
                                 onInit={(evt, editor) => editorRef.current = editor}
-                                initialValue={description}
+                                onEditorChange={(value: any) => {
+                                    setLeave(true);
+                                    setDescription(value)
+                                    if (value.trim() === '') {
+                                        setDescriptionError('Description is required !');
+                                    }
+                                    else {
+                                        setDescriptionError('');
+                                    }
+                                }}
+                                value={description}
                                 init={{
                                     height: 200,
                                     marginLeft: '16px',
@@ -609,6 +679,7 @@ export default function ProductDetailContent(props: any) {
                                 }}
                             />
                         </div>
+                        <p className="text-danger">{descriptionError}</p>
                     </Form.Item>
 
 
@@ -618,6 +689,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <Switch onChange={(checked: any) => {
+                                setLeave(true);
                                 if (checked === true) {
                                     setEnabled(1);
                                 }
@@ -650,6 +722,7 @@ export default function ProductDetailContent(props: any) {
                         name="taxExemp"
                     >
                         <Checkbox defaultChecked={taxExempt === "1"} onChange={(event: any) => {
+                            setLeave(true);
                             if (event.target.checked === true) {
                                 setTaxExempt("1");
                             }
@@ -662,22 +735,28 @@ export default function ProductDetailContent(props: any) {
 
                     <Form.Item
                         name="price"
-                        label={<label style={{ color: "#fff" }}>Price</label>}
+                        label={<label style={{ color: "#fff" }}>Price<span className="text-danger">*</span></label>}
                     >
                         <div className="row">
                             <div className="ml-3 text-white" style={{ padding: '8px 20px 8px 20px', backgroundColor: 'rgba(180,180,219,.24)', borderRadius: '5px' }}>
                                 $
                             </div>
                             <input className="ant-input bg-main" onChange={(event: any) => {
-
+                                setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setPrice(value);
                                 }
+                                if (event.target.value.trim() === '') {
+                                    setPriceError('Price is required !');
+                                }
+                                else {
+                                    setPriceError('');
+                                }
                             }} value={price} style={{ width: '150px' }} placeholder="Input a number" />
                         </div>
-
+                        <p className="text-danger">{priceError}</p>
                     </Form.Item>
                     <Form.Item
                         name="priceSale"
@@ -692,13 +771,14 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row" style={{ display: `${display}`, marginLeft: '2px' }}>
                             <Select onChange={(value: any) => {
+                                setLeave(true);
                                 setPriceSaleType(value);
                             }} defaultValue={priceSaleType} style={{ width: '50px' }}>
                                 <Option value="$">$</Option>
                                 <Option value="%">%</Option>
                             </Select>
                             <input className="ant-input bg-main" onChange={(event: any) => {
-
+                                setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
@@ -714,38 +794,43 @@ export default function ProductDetailContent(props: any) {
                         name="arrivalDate"
                     >
                         <div className="row ml-1 align-items-center">
-                            <div className="mr-2" style={{ padding: '5px 20px 5px 20px', backgroundColor: 'rgba(180,180,219,.24)', borderRadius: '5px' }}>
-                                <i className="fa-solid fa-calendar" style={{ color: 'rgba(180,180,219,.48)' }}></i>
-                            </div>
-                            <DatePicker onChange={(date:any,dateString:any) => {
-                                setArrivalDate(dateString);
-                            }} defaultValue={moment(parseInt(arrivalDate) * 1000)} />
+                            <Calendar
+                                date={arrivalDate}
+                                onChange={(date: any) => {
+                                    setLeave(true);
+                                    setArrivalDate(date);
+                                }}
+                            />
                         </div>
                     </Form.Item>
 
                     <Form.Item
-                        label={<label style={{ color: "#fff" }}>Quantity in stock</label>}
+                        label={<label style={{ color: "#fff" }}>Quantity in stock<span className="text-danger">*</span></label>}
                         name="stocks"
                     >
                         <div className="row align-items-center">
                             <input className="ant-input bg-main" onChange={(event: any) => {
-
+                                setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setStock(value);
                                 }
+                                if (event.target.value.trim() === '') {
+                                    setQuantityError('Quantity is required !');
+                                }
+                                else {
+                                    setQuantityError('');
+                                }
                             }} style={{ width: '150px', marginLeft: '16px' }} placeholder="Input a number" value={stock} />
-
-
-
                         </div>
+                        <p className="text-danger">{quantityError}</p>
                     </Form.Item>
 
                     <div className="" style={{ display: 'block', height: '20px', backgroundColor: '#323259', boxShadow: 'inset 0 5px 5px -5px rgba(0,0,0,.75)', marginRight: '-17.25rem', marginLeft: '-2.25rem' }}></div>
                     <h3 className="mt-3 mb-3 text-white">Shipping</h3>
                     <Form.Item
-                        label={<label style={{ color: "#fff" }}>Continental U.S</label>}
+                        label={<label style={{ color: "#fff" }}>Continental U.S<span className="text-danger">*</span></label>}
                         name="continental"
                     >
                         <div className="row align-items-center">
@@ -753,14 +838,21 @@ export default function ProductDetailContent(props: any) {
                                 $
                             </div>
                             <input className="ant-input bg-main" onChange={(event: any) => {
-
+                                setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setContinentalUS(value);
                                 }
+                                if (event.target.value.trim() === '') {
+                                    setContinentalUSError('Continental is required !');
+                                }
+                                else {
+                                    setContinentalUSError('');
+                                }
                             }} style={{ width: '150px' }} placeholder="Input a number" value={continentalUS} />
                         </div>
+                        <p className="text-danger">{continentalUSError}</p>
                     </Form.Item>
 
                     <Form.Item
@@ -768,7 +860,7 @@ export default function ProductDetailContent(props: any) {
                         name="location"
                     >
                         <Select onChange={(value: any) => {
-
+                            setLeave(true);
                         }} style={{ width: '300px' }} placeholder="Select new zone">
                             {countryList.map((country: any, index: any) => {
                                 return <Option key={index}>{country.country}</Option>
@@ -791,7 +883,6 @@ export default function ProductDetailContent(props: any) {
                         label={<label style={{ color: "#fff" }}>Open Graph meta tags</label>}
                     >
                         <Select onChange={(value: any) => {
-
                             setOgTagType(value);
                             if (value === "0") {
                                 setDisplayOgTag('none');
@@ -804,7 +895,7 @@ export default function ProductDetailContent(props: any) {
                             <Option value="1">Custom</Option>
                         </Select>
                         <br />
-                        <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value); }} />
+                        <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value);setLeave(true); }} />
                     </Form.Item>
 
                     <Form.Item
@@ -824,7 +915,7 @@ export default function ProductDetailContent(props: any) {
                             <Option value="C">Custom</Option>
                         </Select>
                         <br />
-                        <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value); }} />
+                        <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value);setLeave(true); }} />
                     </Form.Item>
 
                     <Form.Item
@@ -832,7 +923,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
-
+                                setLeave(true);
                                 setMetaKeyWord(event.target.value);
                             }} value={metaKeyWord} className="ant-input bg-main ml-3" style={{ width: '300px' }} />
                         </div>
@@ -843,7 +934,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <input onChange={(event: any) => {
-
+                                setLeave(true);
                                 setProductPageTitle(event.target.value);
                             }} value={productPageTitle} className="ant-input bg-main ml-3" style={{ width: '300px' }} />
                         </div>
@@ -855,6 +946,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <Switch onChange={(checked: any) => {
+                                setLeave(true);
                                 if (checked === true) {
                                     setFaceBookFeed(1);
                                 }
@@ -871,6 +963,7 @@ export default function ProductDetailContent(props: any) {
                     >
                         <div className="row">
                             <Switch onChange={(checked: any) => {
+                                setLeave(true);
                                 if (checked === true) {
                                     setGoogleFeed(1);
                                 }

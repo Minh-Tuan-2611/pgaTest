@@ -3,10 +3,11 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import React, { useState } from 'react'
 import { Spinner } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { ROUTES } from '../../configs/routes';
+import ButtonConfirmLeaveAddUser from '../ButtonConfirm/ButtonConfirmLeaveAddUser';
 
 const formItemLayout = {
   labelCol: {
@@ -25,11 +26,15 @@ export default function AddUserContent() {
 
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+
   const config = {
     headers: { Authorization: Cookies.get('token') as string },
   };
 
   let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
+
+  let [leave, setLeave] = useState(false);
 
   let [loading, setLoading] = useState(false);
 
@@ -173,9 +178,17 @@ export default function AddUserContent() {
         </div> : ''}
       </div>
       <div className="row">
-        <button onClick={() => {
-          navigate(ROUTES.userList);
-        }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>
+      {leave === false ? <button onClick={() => {
+                        navigate(ROUTES.userList);
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>:''}
+                    {leave === true ? <button onClick={() => {
+                        dispatch({
+                            type: 'change_modal',
+                            title: 'Confirm Leave Page',
+                            content: 'Do you want to leave page ?',
+                            button: <ButtonConfirmLeaveAddUser/>
+                          })
+                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button>:''}
       </div>
       <Form
         {...formItemLayout}
@@ -198,7 +211,7 @@ export default function AddUserContent() {
             },
           ]}
         >
-          <input onChange={(event: any) => { setFirstName(event.target.value) }} className="ant-input bg-main" style={{ width: '660px' }} />
+          <input onChange={(event: any) => { setFirstName(event.target.value);setLeave(true); }} className="ant-input bg-main" style={{ width: '660px' }} />
         </Form.Item>
 
         <Form.Item
@@ -211,7 +224,7 @@ export default function AddUserContent() {
             },
           ]}
         >
-          <input onChange={(event: any) => { setLastName(event.target.value) }} className="ant-input bg-main" style={{ width: '660px' }} />
+          <input onChange={(event: any) => { setLastName(event.target.value);setLeave(true) }} className="ant-input bg-main" style={{ width: '660px' }} />
         </Form.Item>
 
         <Form.Item
@@ -228,7 +241,7 @@ export default function AddUserContent() {
             },
           ]}
         >
-          <input onChange={(event: any) => { setEmail(event.target.value) }} className="ant-input bg-main" style={{ width: '660px' }} />
+          <input onChange={(event: any) => { setEmail(event.target.value);setLeave(true) }} className="ant-input bg-main" style={{ width: '660px' }} />
 
         </Form.Item>
 
@@ -247,7 +260,7 @@ export default function AddUserContent() {
           ]}
           hasFeedback
         >
-          <input onChange={(event: any) => { setPassword(event.target.value) }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
+          <input onChange={(event: any) => { setPassword(event.target.value);setLeave(true) }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
         </Form.Item>
 
         <Form.Item
@@ -270,14 +283,14 @@ export default function AddUserContent() {
             }),
           ]}
         >
-          <input onChange={(event: any) => { setPasswordConfirm(event.target.value) }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
+          <input onChange={(event: any) => { setPasswordConfirm(event.target.value);setLeave(true) }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
         </Form.Item>
 
         <Form.Item
           name="type"
           label={<label style={{ color: "#fff" }}>Type</label>}
         >
-          <Select onChange={(value: any) => { setType(value) }} defaultValue="individual" style={{ width: '660px' }} >
+          <Select onChange={(value: any) => { setType(value);setLeave(true) }} defaultValue="individual" style={{ width: '660px' }} >
             <Option value="individual">Individual</Option>
             <Option value="business">Business</Option>
           </Select>
@@ -291,6 +304,7 @@ export default function AddUserContent() {
           label={<label style={{ color: "#fff" }}>Access Level</label>}
         >
           <Select onChange={(value: any) => {
+            setLeave(true)
             setLevel(value);
             if (value === "10") {
               setDisplayRole('none');
@@ -310,6 +324,7 @@ export default function AddUserContent() {
           label={<label style={{ color: "#fff" }}>Roles</label>}
         >
           <Select onChange={(value: any) => {
+            setLeave(true)
             setRole(value);
           }} mode="multiple" defaultValue={role} style={{ width: '660px' }} >
             <Option value="1">Administrator</Option>
@@ -325,7 +340,7 @@ export default function AddUserContent() {
           name="Membership"
           label={<label style={{ color: "#fff" }}>Membership</label>}
         >
-          <Select onChange={(value: any) => { setMembershipId(value) }} defaultValue="" style={{ width: '660px' }} >
+          <Select onChange={(value: any) => { setMembershipId(value);setLeave(true) }} defaultValue="" style={{ width: '660px' }} >
             <Option value="">Ignore Membership</Option>
             <Option value="4">General</Option>
           </Select>
@@ -336,6 +351,7 @@ export default function AddUserContent() {
           label={<label style={{ color: "#fff" }}>Require to change password on next<br />log in</label>}
         >
           <Checkbox onChange={(event: any) => {
+            setLeave(true);
             if (event.target.checked === true) {
               setChangePassword('1');
             }
@@ -353,6 +369,7 @@ export default function AddUserContent() {
           label={<label style={{ color: "#fff" }}>Tax Exempt</label>}
         >
           <Checkbox onChange={(event: any) => {
+            setLeave(true)
             if (event.target.checked === true) {
               setTaxExempt('1');
             }

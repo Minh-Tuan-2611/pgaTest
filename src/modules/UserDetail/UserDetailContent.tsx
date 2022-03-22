@@ -7,8 +7,9 @@ import { ROUTES } from '../../configs/routes';
 import moment from 'moment';
 import { Checkbox, Form, Select } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
+import ButtonConfirmLeaveAddUser from '../ButtonConfirm/ButtonConfirmLeaveAddUser';
 
 const formItemLayout = {
   labelCol: {
@@ -29,6 +30,8 @@ export default function UserDetailContent() {
 
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+
   const config = {
     headers: { Authorization: Cookies.get('token') as string },
   };
@@ -45,6 +48,8 @@ export default function UserDetailContent() {
       return '92%'
     }
   }
+
+  let [leave, setLeave] = useState(false);
 
   let [loading, setLoading] = useState(false);
 
@@ -132,8 +137,8 @@ export default function UserDetailContent() {
       ]
     }, config);
 
-    promise.then((result)=>{
-      if(result.data.success === true){
+    promise.then((result) => {
+      if (result.data.success === true) {
         setLoading(false);
         Swal.fire(
           'Update User Success !',
@@ -186,9 +191,17 @@ export default function UserDetailContent() {
     return (
       <div>
         <div className="row">
-          <button onClick={() => {
+          {leave === false ? <button onClick={() => {
             navigate(ROUTES.userList);
-          }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>
+          }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button> : ''}
+          {leave === true ? <button onClick={() => {
+            dispatch({
+              type: 'change_modal',
+              title: 'Confirm Leave Page',
+              content: 'Do you want to leave page ?',
+              button: <ButtonConfirmLeaveAddUser />
+            })
+          }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button> : ''}
         </div>
         <h3 className="mt-3 mb-3 text-white">{userDetail.info.email} ( {userDetail.info.companyName} )</h3>
         <div className="text-white">
@@ -248,18 +261,19 @@ export default function UserDetailContent() {
           <Form.Item
             name="firstName"
             label={<label style={{ color: "#fff" }}>First Name <span className="text-danger">*</span></label>}
-            
+
           >
             <div>
-              <input value={firstName} onChange={(event: any) => { 
+              <input value={firstName} onChange={(event: any) => {
+                setLeave(true);
                 setFirstName(event.target.value);
-                if(event.target.value === ''){
+                if (event.target.value === '') {
                   setFirstNameError('First Name is required !');
                 }
-                else if(event.target.value !== ''){
+                else if (event.target.value !== '') {
                   setFirstNameError('');
-                } 
-                }} className="ant-input bg-main" style={{ width: '660px' }} />
+                }
+              }} className="ant-input bg-main" style={{ width: '660px' }} />
             </div>
             <p className="text-danger">{firstNameError}</p>
           </Form.Item>
@@ -267,17 +281,18 @@ export default function UserDetailContent() {
           <Form.Item
             name="lastName"
             label={<label style={{ color: "#fff" }}>Last Name <span className="text-danger">*</span></label>}
-            
+
           >
             <div>
-              <input value={lastName} onChange={(event: any) => { 
-                setLastName(event.target.value) 
-                if(event.target.value === ''){
+              <input value={lastName} onChange={(event: any) => {
+                setLeave(true);
+                setLastName(event.target.value)
+                if (event.target.value === '') {
                   setLastNameError('Last Name is required !');
                 }
-                else if(event.target.value !== ''){
+                else if (event.target.value !== '') {
                   setLastNameError('');
-                } 
+                }
               }} className="ant-input bg-main" style={{ width: '660px' }} />
             </div>
             <p className="text-danger">{lastNameError}</p>
@@ -286,12 +301,13 @@ export default function UserDetailContent() {
           <Form.Item
             name="email"
             label={<label style={{ color: "#fff" }}>Email <span className="text-danger">*</span></label>}
-            
+
           >
             <div>
-              <input value={email} onChange={(event: any) => { 
-                setEmail(event.target.value) 
-                if(event.target.value.match(regax)){
+              <input value={email} onChange={(event: any) => {
+                setLeave(true);
+                setEmail(event.target.value)
+                if (event.target.value.match(regax)) {
                   setEmailError('');
                 }
                 else {
@@ -300,15 +316,15 @@ export default function UserDetailContent() {
               }} className="ant-input bg-main" style={{ width: '660px' }} />
             </div>
 
-          <p className="text-danger">{emailError}</p>
+            <p className="text-danger">{emailError}</p>
           </Form.Item>
 
           <Form.Item
             name="password"
             label={<label style={{ color: "#fff" }}>Password</label>}
-            
+
           >
-            <input onChange={(event: any) => { setPassword(event.target.value) }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
+            <input onChange={(event: any) => { setPassword(event.target.value); setLeave(true); }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
           </Form.Item>
 
           <Form.Item
@@ -317,7 +333,7 @@ export default function UserDetailContent() {
             dependencies={['password']}
             hasFeedback
             rules={[
-              
+
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('password') === value) {
@@ -328,7 +344,7 @@ export default function UserDetailContent() {
               }),
             ]}
           >
-            <input onChange={(event: any) => { setPasswordConfirm(event.target.value) }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
+            <input onChange={(event: any) => { setPasswordConfirm(event.target.value); setLeave(true); }} id="register_password" className="ant-input bg-main" type="password" style={{ width: '660px' }} />
           </Form.Item>
 
           <div className="" style={{ display: 'block', height: '20px', backgroundColor: '#323259', boxShadow: 'inset 0 5px 5px -5px rgba(0,0,0,.75)', marginRight: '-17.25rem', marginLeft: '-2.25rem' }}></div>
@@ -347,6 +363,7 @@ export default function UserDetailContent() {
             label={<label style={{ color: "#fff" }}>Roles</label>}
           >
             <Select onChange={(value: any) => {
+              setLeave(true);
               setRole(value);
             }} mode="multiple" defaultValue={role} style={{ width: '660px' }} >
               <Option value="1">Administrator</Option>
@@ -363,6 +380,7 @@ export default function UserDetailContent() {
             label={<label style={{ color: "#fff" }}>Account Status</label>}
           >
             <Select onChange={(value: any) => {
+              setLeave(true);
               setStatus(value);
             }} style={{ width: '660px' }} defaultValue={status} >
               <Option value="E">Enable</Option>
@@ -377,6 +395,7 @@ export default function UserDetailContent() {
           >
             <div>
               <TextArea value={comment} onChange={(event: any) => {
+                setLeave(true);
                 setComment(event.target.value)
               }} style={{ height: 120 }} />
             </div>
@@ -387,6 +406,7 @@ export default function UserDetailContent() {
             label={<label style={{ color: "#fff" }}>Memberships</label>}
           >
             <Select onChange={(value: any) => {
+              setLeave(true);
               setMembership(value);
             }} style={{ width: '660px' }} defaultValue="">
               <Option value="">Ignore Memberships</Option>
@@ -399,6 +419,7 @@ export default function UserDetailContent() {
             label={<label style={{ color: "#fff" }}>Require to change password on next<br />log in</label>}
           >
             <Checkbox defaultChecked={changePassword === 1} onChange={(event: any) => {
+              setLeave(true);
               if (event.target.checked === true) {
                 setChangePassword(1);
               }
@@ -416,6 +437,7 @@ export default function UserDetailContent() {
             label={<label style={{ color: "#fff" }}>Tax Exempt</label>}
           >
             <Checkbox defaultChecked={taxExempt === 1} onChange={(event: any) => {
+              setLeave(true);
               if (event.target.checked === true) {
                 setTaxExempt(1);
               }
