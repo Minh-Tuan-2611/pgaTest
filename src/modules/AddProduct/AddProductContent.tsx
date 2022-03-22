@@ -92,6 +92,12 @@ export default function AddProductContent(props: any) {
     setLeave(true);
     console.log(result);
     setFileList(result.fileList);
+    if(result.fileList.length > 0) {
+      setImageError('');
+    }
+    else if(result.fileList.length === 0) {
+      setImageError('Images is required !');
+    }
   };
 
   const onPreview = async (file: any) => {
@@ -213,124 +219,111 @@ export default function AddProductContent(props: any) {
   }, [])
 
   const setDisable = () => {
-    if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList !== [] && category !== [] && price !== '' && stock !== '' && continentalUS !== '') {
+    if (vendor !== '' && productTitle !== "" && brand !== '' && sku !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
       return false;
     }
-    else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList === [] || category === [] || price === '' || stock === '' || continentalUS === '') {
+    else if (vendor === '' || productTitle === "" || brand === '' || sku === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
       return true;
     }
   }
 
   const onFinish = (values: any) => {
-    if (editorRef.current.getContent() !== null && fileList.length > 0) {
-      setImageError('');
-      setDescError('');
-      setLoading(true);
-      let img = [];
-      for (var i = 0; i < fileList.length; i++) {
-        img.push(fileList[i].name);
+    setLoading(true);
+    let img = [];
+    for (var i = 0; i < fileList.length; i++) {
+      img.push(fileList[i].name);
+    }
+    let bodyFormData = new FormData();
+    bodyFormData.append('productDetail', JSON.stringify({
+      "vendor_id": vendor,
+      "name": productTitle,
+      "brand_id": brand,
+      "condition_id": condition,
+      "categories": category,
+      "description": editorRef.current.getContent(),
+      "enabled": enabled,
+      "memberships": membership,
+      "shipping_to_zones": [{ id: "1", price: continentalUS }],
+      "tax_exempt": taxExempt,
+      "price": price,
+      "sale_price_type": priceSaleType,
+      "arrival_date": arrivalDate,
+      "inventory_tracking": 0,
+      "quantity": stock,
+      "sku": sku,
+      "participate_sale": 0,
+      "sale_price": priceSale,
+      "og_tags_type": ogTagType,
+      "og_tags": ogTag,
+      "meta_desc_type": metaDescriptionType,
+      "meta_description": metaDescription,
+      "meta_keywords": metaKeyWord,
+      "product_page_title": productPageTitle,
+      "facebook_marketing_enabled": faceBookFeed,
+      "google_feed_enabled": googleFeed,
+      "imagesOrder": img,
+      "deleted_images": [],
+    }));
+    let promise = axios({
+      method: "post",
+      url: "https://api.gearfocus.div4.pgtest.co/apiAdmin/products/create",
+      data: bodyFormData,
+      headers: config.headers,
+    })
+
+    promise.then((result) => {
+      console.log(result);
+      if (result.data.success === true) {
+        for (let i = 0; i < fileList.length; i++) {
+          let id = result.data.data;
+          let bodyFormData = new FormData();
+          bodyFormData.append('productId', id);
+          bodyFormData.append('order', JSON.stringify(0));
+          bodyFormData.append('images[]', fileList[i].originFileObj);
+          let promise = axios({
+            method: 'post',
+            url: 'https://api.gearfocus.div4.pgtest.co/api/products/upload-image',
+            data: bodyFormData,
+            headers: config.headers
+          })
+          promise.then((result) => {
+            if (result.data.success === true) {
+              navigate(`/productDetail/${id}`);
+              setLoading(false);
+              Swal.fire(
+                'Create Product Success !',
+                '',
+                'success'
+              )
+            }
+            else if (result.data.success === false) {
+              setLoading(false);
+              Swal.fire(
+                `${result.data.errors}`,
+                '',
+                'error'
+              )
+            }
+          })
+        }
       }
-      let bodyFormData = new FormData();
-      bodyFormData.append('productDetail', JSON.stringify({
-        "vendor_id": vendor,
-        "name": productTitle,
-        "brand_id": brand,
-        "condition_id": condition,
-        "categories": category,
-        "description": editorRef.current.getContent(),
-        "enabled": enabled,
-        "memberships": membership,
-        "shipping_to_zones": [{ id: "1", price: continentalUS }],
-        "tax_exempt": taxExempt,
-        "price": price,
-        "sale_price_type": priceSaleType,
-        "arrival_date": arrivalDate,
-        "inventory_tracking": 0,
-        "quantity": stock,
-        "sku": sku,
-        "participate_sale": 0,
-        "sale_price": priceSale,
-        "og_tags_type": ogTagType,
-        "og_tags": ogTag,
-        "meta_desc_type": metaDescriptionType,
-        "meta_description": metaDescription,
-        "meta_keywords": metaKeyWord,
-        "product_page_title": productPageTitle,
-        "facebook_marketing_enabled": faceBookFeed,
-        "google_feed_enabled": googleFeed,
-        "imagesOrder": img,
-        "deleted_images": [],
-      }));
-      let promise = axios({
-        method: "post",
-        url: "https://api.gearfocus.div4.pgtest.co/apiAdmin/products/create",
-        data: bodyFormData,
-        headers: config.headers,
-      })
-
-      promise.then((result) => {
-        console.log(result);
-        if (result.data.success === true) {
-          for (let i = 0; i < fileList.length; i++) {
-            let id = result.data.data;
-            let bodyFormData = new FormData();
-            bodyFormData.append('productId', id);
-            bodyFormData.append('order', JSON.stringify(0));
-            bodyFormData.append('images[]', fileList[i].originFileObj);
-            let promise = axios({
-              method: 'post',
-              url: 'https://api.gearfocus.div4.pgtest.co/api/products/upload-image',
-              data: bodyFormData,
-              headers: config.headers
-            })
-            promise.then((result) => {
-              if (result.data.success === true) {
-                navigate(`/productDetail/${id}`);
-                setLoading(false);
-                Swal.fire(
-                  'Create Product Success !',
-                  '',
-                  'success'
-                )
-              }
-              else if (result.data.success === false) {
-                setLoading(false);
-                Swal.fire(
-                  `${result.data.errors}`,
-                  '',
-                  'error'
-                )
-              }
-            })
-          }
-        }
-        else if (result.data.success === false) {
-          setLoading(false);
-          Swal.fire(
-            `${result.data.errors}`,
-            '',
-            'error'
-          )
-        }
-      })
-
-      promise.catch((error) => {
+      else if (result.data.success === false) {
+        setLoading(false);
         Swal.fire(
-          'Create Product Fail !',
+          `${result.data.errors}`,
           '',
           'error'
         )
-      })
-    }
-    else {
-      if (fileList.length === 0) {
-        setImageError('Image is required !');
       }
-      if (editorRef.current.getContent() === null) {
-        setDescError('Description is required !');
-      }
+    })
 
-    }
+    promise.catch((error) => {
+      Swal.fire(
+        'Create Product Fail !',
+        '',
+        'error'
+      )
+    })
   };
 
   return (
@@ -343,17 +336,17 @@ export default function AddProductContent(props: any) {
         </div> : ''}
       </div>
       <div className="row">
-      {leave === false ? <button onClick={() => {
-                        navigate(ROUTES.product);
-                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button>:''}
-                    {leave === true ? <button onClick={() => {
-                        dispatch({
-                            type: 'change_modal',
-                            title: 'Confirm Leave Page',
-                            content: 'Do you want to leave page ?',
-                            button: <ButtonConfirmLeaveAddProduct/>
-                          })
-                    }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button>:''}
+        {leave === false ? <button onClick={() => {
+          navigate(ROUTES.product);
+        }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3"><i className="fa-solid fa-arrow-left"></i></button> : ''}
+        {leave === true ? <button onClick={() => {
+          dispatch({
+            type: 'change_modal',
+            title: 'Confirm Leave Page',
+            content: 'Do you want to leave page ?',
+            button: <ButtonConfirmLeaveAddProduct />
+          })
+        }} style={{ borderRadius: '50%' }} className="btn bg-light ml-3" data-toggle="modal" data-target="#modelId"><i className="fa-solid fa-arrow-left"></i></button> : ''}
       </div>
 
       <Form
@@ -459,7 +452,7 @@ export default function AddProductContent(props: any) {
 
         <Form.Item
           name="images"
-          label={<label style={{ color: "#fff" }}>Images</label>}
+          label={<label style={{ color: "#fff" }}><span className="text-danger">*</span>Images</label>}
         >
 
           <Upload
@@ -492,14 +485,22 @@ export default function AddProductContent(props: any) {
 
         <Form.Item
           name="description"
-          label={<label style={{ color: "#fff" }}>Description</label>}
+          label={<label style={{ color: "#fff" }}><span className="text-danger">*</span>Description</label>}
         // rules={[{ required: true, message: 'Please enter description !' }]}
         >
           <div className="row">
             <Editor
               onInit={(evt, editor) => editorRef.current = editor}
               initialValue=""
-              onEditorChange={(value: any)=>{setLeave(true);}}
+              onEditorChange={(value: any) => {
+                setLeave(true);
+                if (value.trim() === '') {
+                  setDescError('Description is required !')
+                }
+                else {
+                  setDescError('')
+                }
+              }}
               init={{
                 height: 200,
                 marginLeft: '16px',
@@ -516,8 +517,8 @@ export default function AddProductContent(props: any) {
                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
               }}
             />
-            <p className="text-danger">{descError}</p>
           </div>
+          <p className="text-danger">{descError}</p>
         </Form.Item>
 
         <Form.Item
@@ -682,7 +683,7 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>Add Shipping Location</label>}
           name="location"
         >
-          <Select onChange={()=>{
+          <Select onChange={() => {
             setLeave(true);
           }} style={{ width: '300px' }} placeholder="Select new zone">
             {countryList.map((country: any, index: any) => {
@@ -718,7 +719,7 @@ export default function AddProductContent(props: any) {
             <Option value="1">Custom</Option>
           </Select>
           <br />
-          <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value);setLeave(true); }} />
+          <TextArea value={ogTag} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayOgTag}` }} onChange={(event: any) => { setOgTag(event.target.value); setLeave(true); }} />
         </Form.Item>
 
         <Form.Item
@@ -738,7 +739,7 @@ export default function AddProductContent(props: any) {
             <Option value="C">Custom</Option>
           </Select>
           <br />
-          <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value);setLeave(true); }} />
+          <TextArea value={metaDescription} className="text-white mt-3" style={{ height: 60, width: '300px', backgroundColor: '#252547', borderColor: '#13132b', display: `${displayMetaDescription}` }} onChange={(event: any) => { setMetaDescription(event.target.value); setLeave(true); }} />
         </Form.Item>
 
         <Form.Item
