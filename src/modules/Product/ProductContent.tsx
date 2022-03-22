@@ -233,9 +233,6 @@ export default function ProductContent() {
           <div className="col-1">
             <button onClick={() => {
               getProductList();
-              if (loading === false) {
-                setSearch('');
-              }
             }} className="btn text-white" style={{ backgroundColor: '#b18aff' }}>Search</button>
           </div>
         </div>

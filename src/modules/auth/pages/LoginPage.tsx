@@ -21,7 +21,8 @@ export default function LoginPage() {
                 setLoading(false);
                 window.location.pathname = ROUTES.product
                 localStorage.setItem('emailLogin',values.email);
-                console.log(results.data);
+                localStorage.setItem('idUser',results.data.user.profile_id);
+                console.log(results.data.user);
                 Cookies.set('token',results.data.user_cookie)
             }
             if(results.data.success === false) {

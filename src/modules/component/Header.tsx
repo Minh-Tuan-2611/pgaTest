@@ -41,18 +41,16 @@ export default function Header() {
 
     let email = localStorage.getItem('emailLogin');
 
+    let id = localStorage.getItem('idUser');
+
     const dispatch = useDispatch();
 
     const menu = (
         <div className="">
             <Menu>
                 <Menu.Item key="0">
-                    <NavLink to="/home">
-
-
+                    <NavLink to={`/userDetail/${id}`}>
                         {<p style={{ color: '#666' }}>{email}</p>}
-
-
                     </NavLink>
                 </Menu.Item>
                 <Menu.Item onClick={() => {

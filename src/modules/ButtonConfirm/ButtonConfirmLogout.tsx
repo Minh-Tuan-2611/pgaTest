@@ -11,6 +11,7 @@ export default function ButtonConfirmLogout() {
     <button onClick={()=>{
       Cookies.remove('token');
       localStorage.removeItem('emailLogin');
+      localStorage.removeItem('idUser');
       navigate(ROUTES.login);
     }} className="btn text-white" style={{ backgroundColor:'#b18aff'}} data-dismiss="modal">YES</button>
   )
