@@ -86,7 +86,7 @@ export default function Header() {
                     <MenuIcon />
                 </IconButton>
                 <Typography variant="h5" noWrap component="div">
-                    Gear Focus Admin
+                    Gear Focus Admin <i className="fa-solid fa-bell"></i>
                 </Typography>
                 <Dropdown overlay={menu} overlayStyle={{ zIndex: '2000' }}>
 
