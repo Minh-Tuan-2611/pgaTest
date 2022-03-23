@@ -97,6 +97,7 @@ export default function UserListContent() {
   }
 
   const getUserList = () => {
+    setParams([]);
     setLoading(true);
     let promise = axios.post('https://api.gearfocus.div4.pgtest.co/apiAdmin/users/list', {
       address: address,
@@ -431,7 +432,6 @@ export default function UserListContent() {
               content: 'Do you want to delete all users sellected ?',
               button: <ButtonConfirmRemoveSelectUser getUserList={getUserList} params={params} />
             })
-            setParams([])
           }} className="btn text-white" style={{ backgroundColor: '#f0ad4e' }} data-toggle="modal" data-target="#modelId">Remove Selected</button>
         </div>
         <div className="mt-4">

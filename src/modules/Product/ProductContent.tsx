@@ -82,6 +82,7 @@ export default function ProductContent() {
   const getProductList = () => {
     setDisabled(true);
     setLoading(true);
+    setParams([]);
     let promise = axios.post('https://api.gearfocus.div4.pgtest.co//api/products/list',
       {
         "page": 1,
@@ -413,7 +414,6 @@ export default function ProductContent() {
               content: 'Do you want to delete all products sellected ?',
               button: <ButtonConfirmRemoveSelect getProductList={getProductList} params={params} />
             })
-            setParams([])
           }} className="btn text-white" style={{ backgroundColor: '#f0ad4e' }} data-toggle="modal" data-target="#modelId">Remove Selected</button>
         </div>
         <div className="mt-4">
