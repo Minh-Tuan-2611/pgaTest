@@ -92,10 +92,10 @@ export default function AddProductContent(props: any) {
     setLeave(true);
     console.log(result);
     setFileList(result.fileList);
-    if(result.fileList.length > 0) {
+    if (result.fileList.length > 0) {
       setImageError('');
     }
-    else if(result.fileList.length === 0) {
+    else if (result.fileList.length === 0) {
       setImageError('Images is required !');
     }
   };
@@ -175,6 +175,8 @@ export default function AddProductContent(props: any) {
 
   let [descError, setDescError] = useState('');
 
+  let [dateError, setDateError] = useState('');
+
   const getBrandList = () => {
     setLoading(true);
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/brands/list', config);
@@ -219,10 +221,10 @@ export default function AddProductContent(props: any) {
   }, [])
 
   const setDisable = () => {
-    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
+    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '') {
       return false;
     }
-    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
+    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '') {
       return true;
     }
   }
@@ -620,7 +622,7 @@ export default function AddProductContent(props: any) {
         </Form.Item>
 
         <Form.Item
-          label={<label style={{ color: "#fff" }}>Arrival date</label>}
+          label={<label style={{ color: "#fff" }}><span className="text-danger">*</span>Arrival date</label>}
           name="arrivalDate"
         >
           <div className="row ml-1 align-items-center">
@@ -629,10 +631,16 @@ export default function AddProductContent(props: any) {
             </div>
             <DatePicker onChange={(event: any) => {
               setLeave(true);
-              console.log(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
+              if (event === null) {
+                setDateError('arrivalDate is required !');
+              }
+              else{
+                setDateError('');
+              }
               setArrivalDate(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));
             }} defaultValue={moment(new Date())} />
           </div>
+          <p className="text-danger">{dateError}</p>
         </Form.Item>
 
         <Form.Item
