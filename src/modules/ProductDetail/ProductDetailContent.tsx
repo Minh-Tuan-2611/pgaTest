@@ -68,6 +68,7 @@ export default function ProductDetailContent(props: any) {
     let [leave, setLeave] = useState(false);
 
     const getProductDetail = () => {
+        setLeave(false);
         setLoading(true);
         let promise = axios.post('https://api.gearfocus.div4.pgtest.co/apiAdmin/products/detail', {
             id: id,
@@ -144,9 +145,13 @@ export default function ProductDetailContent(props: any) {
                 }
                 setCategory(arr);
 
-                setBrand(result.data.data.brand_id);
+                if(result.data.data.brand_id){
+                    setBrand(result.data.data.brand_id);
+                }
 
-                setVendor(result.data.data.vendor_id)
+                
+                    setVendor(result.data.data.vendor_id)
+                
 
                 setLoading(false);
 
@@ -207,7 +212,7 @@ export default function ProductDetailContent(props: any) {
 
     let [productPageTitle, setProductPageTitle] = useState('');
 
-    let [vendor, setVendor] = useState('');
+    let [vendor, setVendor] = useState('' as any);
 
     let [brand, setBrand] = useState('');
 
@@ -297,7 +302,7 @@ export default function ProductDetailContent(props: any) {
     );
 
     const setDisable = () => {
-        if (vendor.trim() !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
+        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
             return false;
         }
         else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
@@ -318,6 +323,7 @@ export default function ProductDetailContent(props: any) {
         let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/vendors/list', config);
         promise.then((results) => {
             if (results.data.success === true) {
+                console.log(results.data.data);
                 setVendorList(results.data.data);
             }
         })
@@ -508,7 +514,7 @@ export default function ProductDetailContent(props: any) {
                                 option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                             }
                             style={{ width: '660px' }}
-                            defaultValue={parseInt(vendor)}
+                            defaultValue={vendor}
                             onChange={(value: any) => {
                                 setLeave(true);
                                 setVendor(value);
@@ -516,7 +522,7 @@ export default function ProductDetailContent(props: any) {
                             }}
                         >
                             {vendorList.map((vendor: any, index: any) => {
-                                return <Option key={index} value={vendor.id}>{vendor.name}</Option>
+                                return <Option key={index} value={vendor.id.toString()}>{vendor.name}</Option>
                             })}
                         </Select>
 

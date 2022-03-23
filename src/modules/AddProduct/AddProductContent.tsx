@@ -127,7 +127,7 @@ export default function AddProductContent(props: any) {
 
   let [brand, setBrand] = useState('');
 
-  let [sku, setSku] = useState('');
+  let [sku, setSku] = useState(Date.now().toString());
 
   let [enabled, setEnabled] = useState(0);
 
@@ -445,10 +445,12 @@ export default function AddProductContent(props: any) {
           label={<label style={{ color: "#fff" }}>SKU</label>}
           rules={[{ required: true, message: 'Please input sku !' }]}
         >
-          <input onChange={(event: any) => {
-            setLeave(true);
-            setSku(event.target.value);
-          }} className="ant-input bg-main" style={{ width: '660px' }} />
+          <div>
+            <input onChange={(event: any) => {
+              setLeave(true);
+              setSku(event.target.value);
+            }} value={sku} className="ant-input bg-main" style={{ width: '660px' }} />
+          </div>
 
         </Form.Item>
 
@@ -634,7 +636,7 @@ export default function AddProductContent(props: any) {
               if (event === null) {
                 setDateError('arrivalDate is required !');
               }
-              else{
+              else {
                 setDateError('');
               }
               setArrivalDate(moment(event._d.toLocaleDateString()).format('YYYY-DD-MM'));

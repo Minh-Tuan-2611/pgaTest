@@ -13,19 +13,19 @@ export default function LoginPage() {
     const onLogin = (values: any) => {
         setLoading(true);
         let promise = axios.post('https://api.gearfocus.div4.pgtest.co/api/authentication/login', {
-            email:values.email,
-            password:values.password,
+            email: values.email,
+            password: values.password,
         })
         promise.then((results) => {
-            if(results.data.success === true) {
+            if (results.data.success === true) {
                 setLoading(false);
                 window.location.pathname = ROUTES.product
-                localStorage.setItem('emailLogin',values.email);
-                localStorage.setItem('idUser',results.data.user.profile_id);
+                localStorage.setItem('emailLogin', values.email);
+                localStorage.setItem('idUser', results.data.user.profile_id);
                 console.log(results.data.user);
-                Cookies.set('token',results.data.user_cookie)
+                Cookies.set('token', results.data.user_cookie)
             }
-            if(results.data.success === false) {
+            if (results.data.success === false) {
                 Swal.fire(
                     `${results.data.errors.email}`,
                     '',
@@ -44,15 +44,21 @@ export default function LoginPage() {
         })
     }
 
-    return (
-        <div>
-            {loading === true ? <div style={{ display: 'block',backgroundColor:'#888',opacity:'0.5' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
-          <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
-            <Spinner animation="border"/>
-          </div>
-        </div> : ''}
-            <LoginForm onLogin={onLogin} />
-        </div>
-    )
+    if (Cookies.get('token')){
+        window.location.pathname = ROUTES.product
+        return <div></div>
+    }
+    else {
+        return (
+            <div>
+                {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+                    <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
+                        <Spinner animation="border" />
+                    </div>
+                </div> : ''}
+                <LoginForm onLogin={onLogin} />
+            </div>
+        )
+    }
 }
 
