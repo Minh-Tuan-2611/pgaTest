@@ -78,8 +78,6 @@ export default function AddProductContent(props: any) {
 
   let [fileList, setFileList] = useState([{ name: '', uid: '', originFileObj: {} as Blob }]);
 
-  let [display, setDisplay] = useState('none');
-
   let [brandList, setBrandList] = useState([]);
 
   let [vendorList, setVendorList] = useState([]);
@@ -177,6 +175,10 @@ export default function AddProductContent(props: any) {
 
   let [dateError, setDateError] = useState('');
 
+  let [priceSaleError, setPriceSaleError] = useState('');
+
+  let [skuError, setSkuError] = useState('');
+
   const getBrandList = () => {
     setLoading(true);
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/brands/list', config);
@@ -221,10 +223,10 @@ export default function AddProductContent(props: any) {
   }, [])
 
   const setDisable = () => {
-    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '') {
+    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '' && priceSale !== '' && priceSaleError === '' && skuError === '') {
       return false;
     }
-    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '') {
+    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '' || priceSale === '' || priceSaleError !== '' || skuError !== '') {
       return true;
     }
   }
@@ -442,15 +444,21 @@ export default function AddProductContent(props: any) {
 
         <Form.Item
           name="sku"
-          label={<label style={{ color: "#fff" }}>SKU</label>}
-          rules={[{ required: true, message: 'Please input sku !' }]}
+          label={<label style={{ color: "#fff" }}><span className="text-danger">*</span> SKU</label>}
         >
           <div>
             <input onChange={(event: any) => {
               setLeave(true);
               setSku(event.target.value);
+              if(event.target.value.trim() === '') {
+                setSkuError('SKU is required !')
+              }
+              else{
+                setSkuError('');
+              }
             }} value={sku} className="ant-input bg-main" style={{ width: '660px' }} />
           </div>
+          <p className="text-danger">{skuError}</p>
 
         </Form.Item>
 
@@ -577,15 +585,26 @@ export default function AddProductContent(props: any) {
         <Form.Item
           name="price"
           label={<label className="mr-3" style={{ color: "#fff" }}>Price</label>}
-          rules={[{ required: true, message: 'Please input quantity price !' }]}
+          rules={[{
+            required: true,
+            message: 'Please input price !'
+          },
+          ]
+          }
         >
           <div className="row">
 
             <input className="ant-input bg-main ml-3" onChange={(event: any) => {
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
-              if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+              if ((!isNaN(value) && reg.test(value))) {
                 setPrice(value);
+              }
+              if (parseFloat(value) < parseFloat(priceSale) || parseFloat(value) === parseFloat(priceSale)) {
+                setPriceSaleError('Price must be greater than priceSale !');
+              }
+              else {
+                setPriceSaleError('');
               }
             }} value={price} style={{ width: '150px' }} placeholder="Input a number" />
           </div>
@@ -593,19 +612,20 @@ export default function AddProductContent(props: any) {
         </Form.Item>
         <Form.Item
           name="priceSale"
-          label={<Checkbox onChange={(event: any) => {
-            if (event.target.checked === true) {
-              setDisplay('inline-block');
-            }
-            else if (event.target.checked === false) {
-              setDisplay('none');
-            }
-          }} className="ml-5 mr-5 text-white">Sale</Checkbox>}
+          label={<label style={{ color: "#fff" }}>Sale</label>}
+          rules={[
+            {
+              required: true,
+              message: 'Please input price sale !'
+            },
+          ]
+          }
         >
-          <div className="row" style={{ display: `${display}` }}>
-            <Select className="ml-3" onChange={(value: any) => {
+          <div>
+            <Select onChange={(value: any) => {
               setLeave(true);
               setPriceSaleType(value);
+              setPriceSale('');
             }} defaultValue={priceSaleType} style={{ width: '50px' }}>
               <Option value="$">$</Option>
               <Option value="%">%</Option>
@@ -615,11 +635,18 @@ export default function AddProductContent(props: any) {
               setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
-              if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+              if ((!isNaN(value) && reg.test(value))) {
                 setPriceSale(value);
+              }
+              if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
+                setPriceSaleError('Price must be greater than priceSale !');
+              }
+              else {
+                setPriceSaleError('');
               }
             }} value={priceSale} style={{ width: '150px' }} placeholder="Input a number" />
           </div>
+          <p className="text-danger">{priceSaleError}</p>
 
         </Form.Item>
 
@@ -655,7 +682,7 @@ export default function AddProductContent(props: any) {
               setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
-              if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+              if ((!isNaN(value) && reg.test(value))) {
                 setStock(value);
               }
             }} style={{ width: '150px', marginLeft: '16px' }} placeholder="Input a number" value={stock} />
@@ -682,7 +709,7 @@ export default function AddProductContent(props: any) {
               setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
-              if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+              if ((!isNaN(value) && reg.test(value))) {
                 setContinentalUS(value);
               }
             }} style={{ width: '150px', marginLeft: '16px' }} placeholder="Input a number" value={continentalUS} />

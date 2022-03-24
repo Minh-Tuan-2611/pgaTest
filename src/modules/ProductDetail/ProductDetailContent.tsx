@@ -313,10 +313,10 @@ export default function ProductDetailContent(props: any) {
     );
 
     const setDisable = () => {
-        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && priceSaleError === '' && priceSale !== '' && quantityError === '' && continentalUS.trim() !== '-' && stock.trim() !== '-' && priceSale.trim()!=='-' && price.trim() !== '-' && priceError === '') {
+        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && priceSaleError === '' && priceSale !== '' && quantityError === '' && priceError === '') {
             return false;
         }
-        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || priceSaleError !== '' || priceSale === '' || quantityError !== '' || continentalUS.trim() === '-' || stock.trim() === '-' || priceSale.trim() === '-' || price.trim() === '-' || priceError !== '') {
+        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || priceSaleError !== '' || priceSale === '' || quantityError !== '' || priceError !== '') {
             return true;
         }
     }
@@ -749,16 +749,23 @@ export default function ProductDetailContent(props: any) {
                                 setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
-                                if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+                                if ((!isNaN(value) && reg.test(value)) ) {
                                     setPrice(value);
                                 }
-                                if (parseInt(event.target.value) < 0) {
-                                    setPriceError('Price is must be greater than 0 !');
+                                if(value === ''){
+                                    setPriceError('Price is required !')
                                 }
                                 else {
-                                    setPriceError('');
+                                    setPriceError('')
                                 }
-
+                                if(priceSaleType === '$'){
+                                    if(parseFloat(value) < priceSale || parseFloat(value) === priceSale){
+                                        setPriceSaleError('Price must be greater than priceSale !')
+                                    }
+                                    else{
+                                        setPriceSaleError('')
+                                    }
+                                }
                             }} value={price} style={{ width: '150px' }} placeholder="Input a number" />
                         </div>
                         <p className="text-danger">{priceError}</p>
@@ -786,9 +793,10 @@ export default function ProductDetailContent(props: any) {
                                 setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
-                                if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+                                if ((!isNaN(value) && reg.test(value))) {
                                     setPriceSale(value);
                                 }
+                                
                                 if (priceSaleType === '$') {
                                     if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
                                         setPriceSaleError('Price must be greater than priceSale !')
@@ -796,12 +804,9 @@ export default function ProductDetailContent(props: any) {
                                     else {
                                         setPriceSaleError('')
                                     }
-                                    if (parseFloat(value) < 0) {
-                                        setPriceSaleError('Price sale must be greater than 0 !')
-                                    }
                                 }
                                 else if (priceSaleType === '%') {
-                                    if ((parseInt(value) < 0 || parseInt(value) > 100)) {
+                                    if (( parseInt(value) > 100)) {
                                         setPriceSaleError('Percentage discount valid from 0 to 100 !');
                                     }
                                     else {
@@ -837,11 +842,11 @@ export default function ProductDetailContent(props: any) {
                                 setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
-                                if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+                                if ((!isNaN(value) && reg.test(value))) {
                                     setStock(value);
                                 }
-                                if (parseInt(event.target.value) < 0) {
-                                    setQuantityError('Quantity is must be greater than 0!');
+                                if (value === '') {
+                                    setQuantityError('Quantity is required !');
                                 }
                                 else {
                                     setQuantityError('');
@@ -865,11 +870,11 @@ export default function ProductDetailContent(props: any) {
                                 setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
-                                if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+                                if ((!isNaN(value) && reg.test(value))) {
                                     setContinentalUS(value);
                                 }
-                                if (parseInt(event.target.value) < 0) {
-                                    setContinentalUSError('Continental must be greater than 0 !');
+                                if (value === '') {
+                                    setContinentalUSError('Continental US is required !');
                                 }
                                 else {
                                     setContinentalUSError('');
