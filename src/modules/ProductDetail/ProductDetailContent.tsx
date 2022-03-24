@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../configs/routes';
 import { Spinner } from 'react-bootstrap';
 import {
@@ -39,6 +39,14 @@ const { Option } = Select;
 export default function ProductDetailContent(props: any) {
     let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
 
+    const { pathname } = useLocation();
+
+    console.log(pathname);
+    if (window.location.pathname !== pathname) {
+        console.log(1);
+    }
+
+
     const renderWidth = () => {
         if (collapsed === true) {
             return '81%'
@@ -62,7 +70,7 @@ export default function ProductDetailContent(props: any) {
         headers: { Authorization: Cookies.get('token') as string },
     };
 
-    let [product, setProduct] = useState({ name: '', vendor_id: '', sale_price_type: '', categories: [{ name: '' }], id: '' });
+    let [product, setProduct] = useState({} as any);
     let [loading, setLoading] = useState(false);
     let [arrivalDate, setArrivalDate] = useState(Date.now() as any);
     let [leave, setLeave] = useState(false);
@@ -80,8 +88,13 @@ export default function ProductDetailContent(props: any) {
                 setProductPageTitle(result.data.data.product_page_title)
                 setPrice(result.data.data.price);
                 setStock(result.data.data.quantity);
-                setPriceSale(result.data.data.sale_price);
                 setPriceSaleType(result.data.data.sale_price_type);
+                if (result.data.data.sale_price_type === '%') {
+                    setPriceSale(parseInt(result.data.data.sale_price));
+                }
+                else if (result.data.data.sale_price_type === '$') {
+                    setPriceSale(result.data.data.sale_price);
+                }
                 setSku(result.data.data.sku);
                 setProduct(result.data.data);
                 setArrivalDate(new Date(parseInt(result.data.data.arrival_date) * 1000));
@@ -145,13 +158,11 @@ export default function ProductDetailContent(props: any) {
                 }
                 setCategory(arr);
 
-                if(result.data.data.brand_id){
+                if (result.data.data.brand_id) {
                     setBrand(result.data.data.brand_id);
                 }
 
-                
-                    setVendor(result.data.data.vendor_id)
-                
+                setVendor(result.data.data.vendor_id)
 
                 setLoading(false);
 
@@ -162,8 +173,6 @@ export default function ProductDetailContent(props: any) {
     let [fileImg, setFileImg] = useState([] as any);
 
     let [fileList, setFileList] = useState([] as any);
-
-    let [display, setDisplay] = useState('inline-block');
 
     let [brandList, setBrandList] = useState([]);
 
@@ -220,7 +229,7 @@ export default function ProductDetailContent(props: any) {
 
     let [price, setPrice] = useState('');
 
-    let [priceSale, setPriceSale] = useState('');
+    let [priceSale, setPriceSale] = useState('' as any);
 
     let [priceSaleType, setPriceSaleType] = useState('');
 
@@ -276,6 +285,8 @@ export default function ProductDetailContent(props: any) {
 
     let [continentalUSError, setContinentalUSError] = useState('');
 
+    let [priceSaleError, setPriceSaleError] = useState('');
+
     const renderCheckbox = () => {
 
 
@@ -302,10 +313,10 @@ export default function ProductDetailContent(props: any) {
     );
 
     const setDisable = () => {
-        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '') {
+        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && priceSaleError === '' && priceSale !== '' && quantityError === '' && continentalUS.trim() !== '-' && stock.trim() !== '-' && priceSale.trim()!=='-' && price.trim() !== '-' && priceError === '') {
             return false;
         }
-        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '') {
+        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || priceSaleError !== '' || priceSale === '' || quantityError !== '' || continentalUS.trim() === '-' || stock.trim() === '-' || priceSale.trim() === '-' || price.trim() === '-' || priceError !== '') {
             return true;
         }
     }
@@ -416,7 +427,6 @@ export default function ProductDetailContent(props: any) {
                         })
                         promise.then((result) => {
                             if (result.data.success === true) {
-
                                 getProductDetail();
                                 setLoading(false);
                                 setLeave(false);
@@ -742,31 +752,32 @@ export default function ProductDetailContent(props: any) {
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setPrice(value);
                                 }
-                                if (event.target.value.trim() === '') {
-                                    setPriceError('Price is required !');
+                                if (parseInt(event.target.value) < 0) {
+                                    setPriceError('Price is must be greater than 0 !');
                                 }
                                 else {
                                     setPriceError('');
                                 }
+
                             }} value={price} style={{ width: '150px' }} placeholder="Input a number" />
                         </div>
                         <p className="text-danger">{priceError}</p>
                     </Form.Item>
                     <Form.Item
                         name="priceSale"
-                        label={<Checkbox defaultChecked={priceSale !== ''} onChange={(event: any) => {
-                            if (event.target.checked === true) {
-                                setDisplay('inline-block');
-                            }
-                            else if (event.target.checked === false) {
-                                setDisplay('none');
-                            }
-                        }} className="ml-5 mr-5 text-white">Sale</Checkbox>}
+                        label={<label style={{ color: "#fff" }}>Sale<span className="text-danger">*</span></label>}
                     >
-                        <div className="row" style={{ display: `${display}`, marginLeft: '2px' }}>
+                        <div>
                             <Select onChange={(value: any) => {
                                 setLeave(true);
+                                setPriceSaleError('');
                                 setPriceSaleType(value);
+                                if (value === '%') {
+                                    setPriceSale('1');
+                                }
+                                else if (value === '$') {
+                                    setPriceSale(product.sale_price);
+                                }
                             }} defaultValue={priceSaleType} style={{ width: '50px' }}>
                                 <Option value="$">$</Option>
                                 <Option value="%">%</Option>
@@ -778,9 +789,28 @@ export default function ProductDetailContent(props: any) {
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setPriceSale(value);
                                 }
+                                if (priceSaleType === '$') {
+                                    if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
+                                        setPriceSaleError('Price must be greater than priceSale !')
+                                    }
+                                    else {
+                                        setPriceSaleError('')
+                                    }
+                                    if (parseFloat(value) < 0) {
+                                        setPriceSaleError('Price sale must be greater than 0 !')
+                                    }
+                                }
+                                else if (priceSaleType === '%') {
+                                    if ((parseInt(value) < 0 || parseInt(value) > 100)) {
+                                        setPriceSaleError('Percentage discount valid from 0 to 100 !');
+                                    }
+                                    else {
+                                        setPriceSaleError('');
+                                    }
+                                }
                             }} value={priceSale} style={{ width: '150px' }} placeholder="Input a number" />
                         </div>
-
+                        <p className="text-danger">{priceSaleError}</p>
                     </Form.Item>
 
                     <Form.Item
@@ -810,8 +840,8 @@ export default function ProductDetailContent(props: any) {
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setStock(value);
                                 }
-                                if (event.target.value.trim() === '') {
-                                    setQuantityError('Quantity is required !');
+                                if (parseInt(event.target.value) < 0) {
+                                    setQuantityError('Quantity is must be greater than 0!');
                                 }
                                 else {
                                     setQuantityError('');
@@ -838,8 +868,8 @@ export default function ProductDetailContent(props: any) {
                                 if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
                                     setContinentalUS(value);
                                 }
-                                if (event.target.value.trim() === '') {
-                                    setContinentalUSError('Continental is required !');
+                                if (parseInt(event.target.value) < 0) {
+                                    setContinentalUSError('Continental must be greater than 0 !');
                                 }
                                 else {
                                     setContinentalUSError('');
