@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import React, { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../configs/routes';
 import { Spinner } from 'react-bootstrap';
 import {
@@ -41,10 +41,7 @@ export default function ProductDetailContent(props: any) {
 
     const { pathname } = useLocation();
 
-    console.log(pathname);
-    if (window.location.pathname !== pathname) {
-        console.log(1);
-    }
+    console.log(matchPath( pathname, ROUTES.productDetail ));
 
 
     const renderWidth = () => {
@@ -74,6 +71,7 @@ export default function ProductDetailContent(props: any) {
     let [loading, setLoading] = useState(false);
     let [arrivalDate, setArrivalDate] = useState(Date.now() as any);
     let [leave, setLeave] = useState(false);
+    let [display,setDisplay] = useState('block');
 
     const getProductDetail = () => {
         setLeave(false);
@@ -313,10 +311,10 @@ export default function ProductDetailContent(props: any) {
     );
 
     const setDisable = () => {
-        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && priceSaleError === '' && priceSale !== '' && quantityError === '' && priceError === '') {
+        if (vendor !== '' && productTitle.trim() !== "" && brand.trim() !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && priceSaleError === '' && priceSale !== '' && quantityError === '' && priceError === '' && description !== '') {
             return false;
         }
-        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || priceSaleError !== '' || priceSale === '' || quantityError !== '' || priceError !== '') {
+        else if (vendor === '' || productTitle.trim() === "" || brand.trim() === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || priceSaleError !== '' || priceSale === '' || quantityError !== '' || priceError !== '' || description === '') {
             return true;
         }
     }
@@ -620,6 +618,9 @@ export default function ProductDetailContent(props: any) {
                             fileList={fileList as []}
                             onChange={onChange}
                             onPreview={onPreview}
+                            // onDrop = (e) {
+                            //     console.log('Dropped files', e.dataTransfer.files);
+                            //   },
                         >
                             <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
                         </Upload>
@@ -772,9 +773,16 @@ export default function ProductDetailContent(props: any) {
                     </Form.Item>
                     <Form.Item
                         name="priceSale"
-                        label={<label style={{ color: "#fff" }}>Sale<span className="text-danger">*</span></label>}
+                        label={<label style={{ color: "#fff" }}><Checkbox defaultChecked={display === 'block'} className="mr-3" onChange={(event: any) =>{
+                            if(event.target.checked === true) {
+                                setDisplay('block');
+                            }
+                            else{
+                                setDisplay('none');
+                            }
+                        }}></Checkbox>Sale<span className="text-danger">*</span></label>}
                     >
-                        <div>
+                        <div style={{display:`${display}`}}>
                             <Select onChange={(value: any) => {
                                 setLeave(true);
                                 setPriceSaleError('');

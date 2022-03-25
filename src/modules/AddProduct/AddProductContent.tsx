@@ -76,6 +76,8 @@ export default function AddProductContent(props: any) {
 
   const [form] = Form.useForm();
 
+  let [display,setDisplay] = useState('block');
+
   let [fileList, setFileList] = useState([{ name: '', uid: '', originFileObj: {} as Blob }]);
 
   let [brandList, setBrandList] = useState([]);
@@ -223,10 +225,10 @@ export default function AddProductContent(props: any) {
   }, [])
 
   const setDisable = () => {
-    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '' && priceSale !== '' && priceSaleError === '' && skuError === '') {
+    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '' && priceSale !== '' && priceSaleError === '' && skuError === '' && descError === '') {
       return false;
     }
-    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '' || priceSale === '' || priceSaleError !== '' || skuError !== '') {
+    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '' || priceSale === '' || priceSaleError !== '' || skuError !== '' || descError !== '') {
       return true;
     }
   }
@@ -612,7 +614,14 @@ export default function AddProductContent(props: any) {
         </Form.Item>
         <Form.Item
           name="priceSale"
-          label={<label style={{ color: "#fff" }}>Sale</label>}
+          label={<label style={{ color: "#fff" }}><Checkbox defaultChecked={display === 'block'} className="mr-3" onChange={(event: any) =>{
+            if(event.target.checked === true) {
+                setDisplay('block');
+            }
+            else{
+                setDisplay('none');
+            }
+        }}></Checkbox>Sale</label>}
           rules={[
             {
               required: true,
@@ -621,7 +630,7 @@ export default function AddProductContent(props: any) {
           ]
           }
         >
-          <div>
+          <div style={{display: `${display}` }}>
             <Select onChange={(value: any) => {
               setLeave(true);
               setPriceSaleType(value);
