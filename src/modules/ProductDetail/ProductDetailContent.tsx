@@ -285,6 +285,8 @@ export default function ProductDetailContent(props: any) {
 
     let [priceSaleError, setPriceSaleError] = useState('');
 
+    let [priceSaleValidate,setPriceSaleValidate] = useState('');
+
     const renderCheckbox = () => {
 
 
@@ -415,7 +417,7 @@ export default function ProductDetailContent(props: any) {
                         let id = result.data.data;
                         let bodyFormData = new FormData();
                         bodyFormData.append('productId', id);
-                        bodyFormData.append('order', JSON.stringify(0));
+                        bodyFormData.append('order', JSON.stringify(fileList.length+i));
                         bodyFormData.append('images[]', fileImg[i].originFileObj);
                         let promise = axios({
                             method: 'post',
@@ -804,6 +806,12 @@ export default function ProductDetailContent(props: any) {
                                 if ((!isNaN(value) && reg.test(value))) {
                                     setPriceSale(value);
                                 }
+                                if(value.trim() === '') {
+                                    setPriceSaleValidate('Price Sale is required !')
+                                }
+                                else {
+                                    setPriceSaleValidate('')
+                                }
                                 
                                 if (priceSaleType === '$') {
                                     if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
@@ -824,6 +832,7 @@ export default function ProductDetailContent(props: any) {
                             }} value={priceSale} style={{ width: '150px' }} placeholder="Input a number" />
                         </div>
                         <p className="text-danger">{priceSaleError}</p>
+                        <p className="text-danger">{priceSaleValidate}</p>
                     </Form.Item>
 
                     <Form.Item

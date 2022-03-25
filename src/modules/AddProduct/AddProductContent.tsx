@@ -145,6 +145,8 @@ export default function AddProductContent(props: any) {
 
   let [ogTag, setOgTag] = useState('');
 
+  let [description, setDescription] = useState('');
+
   let [displayOgTag, setDisplayOgTag] = useState('none');
 
   let [displayMetaDescription, setDisplayMetaDescription] = useState('none');
@@ -180,6 +182,8 @@ export default function AddProductContent(props: any) {
   let [priceSaleError, setPriceSaleError] = useState('');
 
   let [skuError, setSkuError] = useState('');
+
+  let [priceSaleValidate,setPriceSaleValidate] = useState('');
 
   const getBrandList = () => {
     setLoading(true);
@@ -218,6 +222,7 @@ export default function AddProductContent(props: any) {
   }
 
   useEffect(() => {
+    setFileList([]);
     getBrandList();
     getVendorList();
     getCategoryList();
@@ -225,10 +230,10 @@ export default function AddProductContent(props: any) {
   }, [])
 
   const setDisable = () => {
-    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '' && priceSale !== '' && priceSaleError === '' && skuError === '' && descError === '') {
+    if (vendor.trim() !== '' && productTitle.trim() !== "" && brand !== '' && sku.trim() !== '' && fileList.length > 0 && category.length > 0 && price !== '' && stock !== '' && continentalUS !== '' && dateError === '' && priceSale !== '' && priceSaleError === '' && skuError === '' && description !== '') {
       return false;
     }
-    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '' || priceSale === '' || priceSaleError !== '' || skuError !== '' || descError !== '') {
+    else if (vendor.trim() === '' || productTitle.trim() === "" || brand === '' || sku.trim() === '' || fileList.length === 0 || category.length === 0 || price === '' || stock === '' || continentalUS === '' || dateError !== '' || priceSale === '' || priceSaleError !== '' || skuError !== '' || description === '') {
       return true;
     }
   }
@@ -246,7 +251,7 @@ export default function AddProductContent(props: any) {
       "brand_id": brand,
       "condition_id": condition,
       "categories": category,
-      "description": editorRef.current.getContent(),
+      "description": description,
       "enabled": enabled,
       "memberships": membership,
       "shipping_to_zones": [{ id: "1", price: continentalUS }],
@@ -284,7 +289,7 @@ export default function AddProductContent(props: any) {
           let id = result.data.data;
           let bodyFormData = new FormData();
           bodyFormData.append('productId', id);
-          bodyFormData.append('order', JSON.stringify(0));
+          bodyFormData.append('order', JSON.stringify(i));
           bodyFormData.append('images[]', fileList[i].originFileObj);
           let promise = axios({
             method: 'post',
@@ -507,6 +512,7 @@ export default function AddProductContent(props: any) {
               onInit={(evt, editor) => editorRef.current = editor}
               initialValue=""
               onEditorChange={(value: any) => {
+                setDescription(value);
                 setLeave(true);
                 if (value.trim() === '') {
                   setDescError('Description is required !')
@@ -515,6 +521,7 @@ export default function AddProductContent(props: any) {
                   setDescError('')
                 }
               }}
+              value={description}
               init={{
                 height: 200,
                 marginLeft: '16px',
@@ -622,13 +629,6 @@ export default function AddProductContent(props: any) {
                 setDisplay('none');
             }
         }}></Checkbox>Sale</label>}
-          rules={[
-            {
-              required: true,
-              message: 'Please input price sale !'
-            },
-          ]
-          }
         >
           <div style={{display: `${display}` }}>
             <Select onChange={(value: any) => {
@@ -644,6 +644,12 @@ export default function AddProductContent(props: any) {
               setLeave(true);
               const { value } = event.target;
               const reg = /^-?\d*(\.\d*)?$/;
+              if(value.trim() === ''){
+                setPriceSaleValidate('Price Sale is required !');
+              }
+              else {
+                setPriceSaleValidate('');
+              }
               if ((!isNaN(value) && reg.test(value))) {
                 setPriceSale(value);
               }
@@ -656,6 +662,7 @@ export default function AddProductContent(props: any) {
             }} value={priceSale} style={{ width: '150px' }} placeholder="Input a number" />
           </div>
           <p className="text-danger">{priceSaleError}</p>
+          <p className="text-danger">{priceSaleValidate}</p>
 
         </Form.Item>
 
