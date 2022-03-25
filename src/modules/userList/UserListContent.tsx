@@ -194,7 +194,7 @@ export default function UserListContent() {
 
   return (
     <div>
-      {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+      {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5',zIndex:'2000' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
         <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
           <Spinner animation="border" style={{ color: "white" }} />
         </div>
