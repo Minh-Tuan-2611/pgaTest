@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import React, { useEffect, useRef, useState } from 'react'
-import { matchPath, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../configs/routes';
 import { Spinner } from 'react-bootstrap';
 import {
@@ -38,11 +38,6 @@ const { Option } = Select;
 
 export default function ProductDetailContent(props: any) {
     let { collapsed } = useSelector((state: any) => state.collapsedtReducer);
-
-    const { pathname } = useLocation();
-
-    console.log(matchPath( pathname, ROUTES.productDetail ));
-
 
     const renderWidth = () => {
         if (collapsed === true) {
@@ -334,7 +329,6 @@ export default function ProductDetailContent(props: any) {
         let promise = axios.get('https://api.gearfocus.div4.pgtest.co/apiAdmin/vendors/list', config);
         promise.then((results) => {
             if (results.data.success === true) {
-                console.log(results.data.data);
                 setVendorList(results.data.data);
             }
         })
