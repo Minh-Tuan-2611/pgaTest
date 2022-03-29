@@ -424,6 +424,8 @@ export default function ProductDetailContent(props: any) {
                                 getProductDetail();
                                 setLoading(false);
                                 setLeave(false);
+                                setFileImg([]);
+                                setFileImgDelete([]);
                                 Swal.fire(
                                     'Update Product Success !',
                                     '',

@@ -96,10 +96,18 @@ export default function UserDetailContent() {
       if (result.data.success === true) {
         console.log(result.data.data);
         setUserDetail(result.data.data);
-        setFirstName(result.data.data.info.firstName);
-        setLastName(result.data.data.info.lastName);
-        setEmail(result.data.data.info.email);
+        if (result.data.data.info.firstName) {
+          setFirstName(result.data.data.info.firstName);
+        }
+        if (result.data.data.info.lastName) {
+          setLastName(result.data.data.info.lastName);
+        }
+        if (result.data.data.info.email) {
+          setEmail(result.data.data.info.email);
+        }
+
         setLevel(result.data.data.info.access_level);
+
         if (result.data.data.info.access_level === '100') {
           setDisplayRole('flex');
         }
@@ -182,7 +190,7 @@ export default function UserDetailContent() {
   }, [])
 
   if (loading === true) {
-    return <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5',zIndex:'3000' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+    return <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5', zIndex: '3000' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
       <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
         <Spinner animation="border" style={{ color: "white" }} />
       </div>

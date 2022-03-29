@@ -89,9 +89,7 @@ export default function Header() {
                     Gear Focus Admin <i className="fa-solid fa-bell"></i>
                 </Typography>
                 <Dropdown overlay={menu} overlayStyle={{ zIndex: '2000' }}>
-
                     <i className="fa-solid fa-user" style={{ position: 'absolute', right: '15px' }}></i>
-
                 </Dropdown>
             </Toolbar>
         </AppBar>

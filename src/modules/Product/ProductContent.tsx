@@ -65,6 +65,8 @@ export default function ProductContent() {
 
   let [display, setDisplay] = useState('none');
 
+  let [total, setTotal] = useState()
+
   const getCategoryList = () => {
     let promise = axios.get('https://api.gearfocus.div4.pgtest.co/api/categories/list');
     promise.then((results) => {
@@ -95,13 +97,14 @@ export default function ProductContent() {
         "sort": "name",
         "order_by": "ASC",
         "search_type": searchType
-      });
+      },config);
     promise.then((results) => {
       if (results.data.data === false) {
         setProductList([]);
       }
       else {
         setProductList(results.data.data);
+        setTotal(results.data.recordsFiltered);
       }
       console.log(results.data.data);
       setLoading(false);
@@ -128,13 +131,14 @@ export default function ProductContent() {
         "sort": sort,
         "order_by": order,
         "search_type": searchType
-      });
+      },config);
     promise.then((results) => {
       if (results.data.data === false) {
         setProductList([]);
       }
       else {
         setProductList(results.data.data);
+        setTotal(results.data.recordsFiltered);
       }
       console.log(results.data.data);
       setLoading(false);
@@ -444,7 +448,7 @@ export default function ProductContent() {
               console.log(results.data.data);
               setLoading(false);
             })
-          }} defaultCurrent={1} defaultPageSize={25} total={3000} />
+          }} defaultCurrent={1} defaultPageSize={25} total={total} />
         </div>
       </div>
     </div>

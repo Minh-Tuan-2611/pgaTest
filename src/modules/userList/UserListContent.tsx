@@ -76,6 +76,8 @@ export default function UserListContent() {
 
   let [types,setTypes] = useState([] as any);
 
+  let [total,setTotal] = useState();
+
   useEffect(() => {
     if (params.length === 0) {
       setDisabled(true);
@@ -125,6 +127,7 @@ export default function UserListContent() {
         else {
           console.log(result.data.data);
           setUserList(result.data.data);
+          setTotal(result.data.recordsFiltered)
         }
       }
       else if (result.data.success === false) {
@@ -167,6 +170,7 @@ export default function UserListContent() {
         else {
           console.log(result.data.data);
           setUserList(result.data.data);
+          setTotal(result.data.recordsFiltered)
         }
       }
       else if (result.data.success === false) {
@@ -466,7 +470,7 @@ export default function UserListContent() {
               console.log(results.data.data);
               setLoading(false);
             })
-          }} defaultCurrent={1} defaultPageSize={25} total={3000} />
+          }} defaultCurrent={1} defaultPageSize={25} total={total} />
         </div>
       </div>
     </div>

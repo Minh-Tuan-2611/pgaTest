@@ -222,7 +222,7 @@ export default function AddProductContent(props: any) {
   }
 
   useEffect(() => {
-    setFileList([]);
+    // setFileList([]);
     getBrandList();
     getVendorList();
     getCategoryList();
@@ -653,12 +653,22 @@ export default function AddProductContent(props: any) {
               if ((!isNaN(value) && reg.test(value))) {
                 setPriceSale(value);
               }
-              if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
-                setPriceSaleError('Price must be greater than priceSale !');
-              }
-              else {
-                setPriceSaleError('');
-              }
+              if (priceSaleType === '$') {
+                if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
+                    setPriceSaleError('Price must be greater than priceSale !')
+                }
+                else {
+                    setPriceSaleError('')
+                }
+            }
+            else if (priceSaleType === '%') {
+                if (( parseInt(value) > 100)) {
+                    setPriceSaleError('Percentage discount valid from 0 to 100 !');
+                }
+                else {
+                    setPriceSaleError('');
+                }
+            }
             }} value={priceSale} style={{ width: '150px' }} placeholder="Input a number" />
           </div>
           <p className="text-danger">{priceSaleError}</p>
