@@ -285,6 +285,7 @@ export default function AddProductContent(props: any) {
     promise.then((result) => {
       console.log(result);
       if (result.data.success === true) {
+        let count = 0;
         for (let i = 0; i < fileList.length; i++) {
           let id = result.data.data;
           let bodyFormData = new FormData();
@@ -297,15 +298,19 @@ export default function AddProductContent(props: any) {
             data: bodyFormData,
             headers: config.headers
           })
+          // eslint-disable-next-line no-loop-func
           promise.then((result) => {
             if (result.data.success === true) {
-              navigate(`/productDetail/${id}`);
-              setLoading(false);
-              Swal.fire(
-                'Create Product Success !',
-                '',
-                'success'
-              )
+              count ++;
+              if(count === fileList.length) {
+                navigate(`/productDetail/${id}`);
+                setLoading(false);
+                Swal.fire(
+                  'Create Product Success !',
+                  '',
+                  'success'
+                )
+              }
             }
             else if (result.data.success === false) {
               setLoading(false);
@@ -480,6 +485,7 @@ export default function AddProductContent(props: any) {
             fileList={fileList as []}
             onChange={onChange}
             onPreview={onPreview}
+            multiple={true}
           >
             <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
           </Upload>

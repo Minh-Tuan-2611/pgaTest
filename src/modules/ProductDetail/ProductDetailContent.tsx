@@ -66,7 +66,7 @@ export default function ProductDetailContent(props: any) {
     let [loading, setLoading] = useState(false);
     let [arrivalDate, setArrivalDate] = useState(Date.now() as any);
     let [leave, setLeave] = useState(false);
-    let [display,setDisplay] = useState('block');
+    let [display, setDisplay] = useState('block');
 
     const getProductDetail = () => {
         setLeave(false);
@@ -280,7 +280,7 @@ export default function ProductDetailContent(props: any) {
 
     let [priceSaleError, setPriceSaleError] = useState('');
 
-    let [priceSaleValidate,setPriceSaleValidate] = useState('');
+    let [priceSaleValidate, setPriceSaleValidate] = useState('');
 
     const renderCheckbox = () => {
 
@@ -407,11 +407,12 @@ export default function ProductDetailContent(props: any) {
             console.log(result);
             if (result.data.success === true) {
                 if (fileImg.length > 0) {
+                    let count = 0;
                     for (let i = 0; i < fileImg.length; i++) {
                         let id = result.data.data;
                         let bodyFormData = new FormData();
                         bodyFormData.append('productId', id);
-                        bodyFormData.append('order', JSON.stringify(fileList.length+i));
+                        bodyFormData.append('order', JSON.stringify(fileList.length + i));
                         bodyFormData.append('images[]', fileImg[i].originFileObj);
                         let promise = axios({
                             method: 'post',
@@ -419,18 +420,22 @@ export default function ProductDetailContent(props: any) {
                             data: bodyFormData,
                             headers: config.headers
                         })
+                        // eslint-disable-next-line no-loop-func
                         promise.then((result) => {
                             if (result.data.success === true) {
-                                getProductDetail();
-                                setLoading(false);
-                                setLeave(false);
-                                setFileImg([]);
-                                setFileImgDelete([]);
-                                Swal.fire(
-                                    'Update Product Success !',
-                                    '',
-                                    'success'
-                                )
+                                count++;
+                                if (count === fileImg.length) {
+                                    getProductDetail();
+                                    setLoading(false);
+                                    setLeave(false);
+                                    setFileImg([]);
+                                    setFileImgDelete([]);
+                                    Swal.fire(
+                                        'Update Product Success !',
+                                        '',
+                                        'success'
+                                    )
+                                }
                             }
                             else if (result.data.success === false) {
                                 setLoading(false);
@@ -444,7 +449,8 @@ export default function ProductDetailContent(props: any) {
                     }
                 }
                 else if (fileImg.length === 0) {
-
+                    setFileImg([]);
+                    setFileImgDelete([]);
                     getProductDetail();
                     setLeave(false);
                     setLoading(false);
@@ -476,7 +482,7 @@ export default function ProductDetailContent(props: any) {
     };
 
     if (loading === true) {
-        return <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5',zIndex: '3000'}} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+        return <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5', zIndex: '3000' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
             <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
                 <Spinner animation="border" style={{ color: "white" }} />
             </div>
@@ -616,9 +622,7 @@ export default function ProductDetailContent(props: any) {
                             fileList={fileList as []}
                             onChange={onChange}
                             onPreview={onPreview}
-                            // onDrop = (e) {
-                            //     console.log('Dropped files', e.dataTransfer.files);
-                            //   },
+                            multiple={true}
                         >
                             <i className="fa-solid fa-camera" style={{ fontSize: '50px', color: '#333' }}></i>
                         </Upload>
@@ -748,20 +752,20 @@ export default function ProductDetailContent(props: any) {
                                 setLeave(true);
                                 const { value } = event.target;
                                 const reg = /^-?\d*(\.\d*)?$/;
-                                if ((!isNaN(value) && reg.test(value)) ) {
+                                if ((!isNaN(value) && reg.test(value))) {
                                     setPrice(value);
                                 }
-                                if(value === ''){
+                                if (value === '') {
                                     setPriceError('Price is required !')
                                 }
                                 else {
                                     setPriceError('')
                                 }
-                                if(priceSaleType === '$'){
-                                    if(parseFloat(value) < priceSale || parseFloat(value) === priceSale){
+                                if (priceSaleType === '$') {
+                                    if (parseFloat(value) < priceSale || parseFloat(value) === priceSale) {
                                         setPriceSaleError('Price must be greater than priceSale !')
                                     }
-                                    else{
+                                    else {
                                         setPriceSaleError('')
                                     }
                                 }
@@ -771,16 +775,16 @@ export default function ProductDetailContent(props: any) {
                     </Form.Item>
                     <Form.Item
                         name="priceSale"
-                        label={<label style={{ color: "#fff" }}><Checkbox defaultChecked={display === 'block'} className="mr-3" onChange={(event: any) =>{
-                            if(event.target.checked === true) {
+                        label={<label style={{ color: "#fff" }}><Checkbox defaultChecked={display === 'block'} className="mr-3" onChange={(event: any) => {
+                            if (event.target.checked === true) {
                                 setDisplay('block');
                             }
-                            else{
+                            else {
                                 setDisplay('none');
                             }
                         }}></Checkbox>Sale<span className="text-danger">*</span></label>}
                     >
-                        <div style={{display:`${display}`}}>
+                        <div style={{ display: `${display}` }}>
                             <Select onChange={(value: any) => {
                                 setLeave(true);
                                 setPriceSaleError('');
@@ -802,13 +806,13 @@ export default function ProductDetailContent(props: any) {
                                 if ((!isNaN(value) && reg.test(value))) {
                                     setPriceSale(value);
                                 }
-                                if(value.trim() === '') {
+                                if (value.trim() === '') {
                                     setPriceSaleValidate('Price Sale is required !')
                                 }
                                 else {
                                     setPriceSaleValidate('')
                                 }
-                                
+
                                 if (priceSaleType === '$') {
                                     if (parseFloat(value) > parseFloat(price) || parseFloat(value) === parseFloat(price)) {
                                         setPriceSaleError('Price must be greater than priceSale !')
@@ -818,7 +822,7 @@ export default function ProductDetailContent(props: any) {
                                     }
                                 }
                                 else if (priceSaleType === '%') {
-                                    if (( parseInt(value) > 100)) {
+                                    if ((parseInt(value) > 100)) {
                                         setPriceSaleError('Percentage discount valid from 0 to 100 !');
                                     }
                                     else {
