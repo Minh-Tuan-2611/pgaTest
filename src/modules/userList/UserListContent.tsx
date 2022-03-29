@@ -74,9 +74,9 @@ export default function UserListContent() {
 
   let [country, setCountry] = useState('');
 
-  let [types,setTypes] = useState([] as any);
+  let [types, setTypes] = useState([] as any);
 
-  let [total,setTotal] = useState();
+  let [total, setTotal] = useState(1000);
 
   useEffect(() => {
     if (params.length === 0) {
@@ -198,7 +198,7 @@ export default function UserListContent() {
 
   return (
     <div>
-      {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5',zIndex:'3000' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
+      {loading === true ? <div style={{ display: 'block', backgroundColor: '#888', opacity: '0.5', zIndex: '3000' }} className="modal fade show" id="modelId2" tabIndex={-1} role="dialog" aria-labelledby="modelTitleId" aria-modal="true">
         <div className="modal-dialog" role="document" style={{ marginTop: "50vh", display: "flex", justifyContent: "space-around" }}>
           <Spinner animation="border" style={{ color: "white" }} />
         </div>
@@ -226,7 +226,7 @@ export default function UserListContent() {
           <div className="col-6">
             <div className="row">
               <div className="col-6">
-                <Select onChange={(value: any)=>{setTypes(value)}} mode="multiple" style={{ width: '100%' }} placeholder="All User Type">
+                <Select onChange={(value: any) => { setTypes(value) }} mode="multiple" style={{ width: '100%' }} placeholder="All User Type">
                   <OptGroup label="Memberships">
                     <Option value="1">Administrator</Option>
                     <Option value="2">Coupons management</Option>
@@ -444,20 +444,20 @@ export default function UserListContent() {
             setPage(page);
             setCount(pageSize);
             let promise = axios.post('https://api.gearfocus.div4.pgtest.co/apiAdmin/users/list', {
-              address: "",
+              address: address,
               count: pageSize,
-              country: "",
-              date_range: [],
-              date_type: "R",
-              memberships: [],
-              order_by: "DESC",
+              country: country,
+              date_range: dateRange,
+              date_type: dataType,
+              memberships: memberships,
+              order_by: order,
               page: page,
-              phone: "",
-              search: "",
-              sort: "last_login",
-              state: "",
-              status: [],
-              types: [],
+              phone: phone,
+              search: search,
+              sort: sort,
+              state: state,
+              status: status,
+              types: types,
               tz: 7,
             }, config)
             promise.then((results) => {
@@ -470,7 +470,7 @@ export default function UserListContent() {
               console.log(results.data.data);
               setLoading(false);
             })
-          }} defaultCurrent={1} defaultPageSize={25} total={total} />
+          }} defaultCurrent={1} defaultPageSize={25} total={total} pageSizeOptions={[10, 25, 50, 75, 100]} />
         </div>
       </div>
     </div>
