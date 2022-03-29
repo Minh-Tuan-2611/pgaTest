@@ -242,7 +242,7 @@ export default function UserDetailContent() {
               </tr>
               <tr>
                 <th style={{ float: 'right', borderTop: 'none' }}>Last login</th>
-                <td style={{ borderTop: 'none' }}>{moment(parseInt(userDetail.info.last_login) * 1000).format('MMM D, YYYY, h:mm A')}</td>
+                {userDetail.info.last_login? <td style={{ borderTop: 'none' }}>{moment(parseInt(userDetail.info.last_login) * 1000).format('MMM D, YYYY, h:mm A')}</td>:<td style={{ borderTop: 'none' }}>{moment(0).format('MMM D, YYYY, h:mm A')}</td>}
               </tr>
               <tr>
                 <th style={{ float: 'right', borderTop: 'none' }}>Language</th>
