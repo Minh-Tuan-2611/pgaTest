@@ -222,7 +222,7 @@ export default function AddProductContent(props: any) {
   }
 
   useEffect(() => {
-    // setFileList([]);
+    setFileList([]);
     getBrandList();
     getVendorList();
     getCategoryList();
